@@ -20,8 +20,8 @@ PXLIVE=os.path.join(DATA,"proxy_live.json")
 CHECKER_IMAGE="curlimages/curl:latest"
 CLIENT_LAST_REPORT=0
 # Local client version — bumped each release. Compared against /api/version on server.
-CLIENT_VERSION="2.4.3"
-CLIENT_BUILD=15
+CLIENT_VERSION="2.4.4"
+CLIENT_BUILD=16
 
 # Stale-while-revalidate cache so slow ops (`docker ps -a` over hundreds of
 # containers can take 20+s) never block UI: serve last value instantly,
