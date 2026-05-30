@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Runtime data — NEVER commit (contains seeds, license keys, customer data)
+data/
+*.log
+*.bak
+*.swp
+
+# Build artifacts
+*.tar.gz
+iim-client-dist/
+/opt/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
+.env.*
+*.pem
+*.key
+hd_wallet.json
+master_seed.json
+server/

@@ -1,0 +1,46 @@
+name: Build & Release client tarball
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Stage client-dist folder
+        run: |
+          set -e
+          DIST=iim-client-dist
+          mkdir -p "$DIST/templates"
+          cp client/app.py                 "$DIST/app.py"
+          cp client/templates/index.html   "$DIST/templates/index.html"
+          cp client/install.sh             "$DIST/install.sh"
+          cp client/ii-manager.service     "$DIST/ii-manager.service"
+          chmod +x "$DIST/install.sh"
+
+          # MANIFEST
+          {
+            echo "IIM Client Package"
+            echo "Tag: ${GITHUB_REF_NAME}"
+            echo "Built: $(date -u +%FT%TZ)"
+            echo "Commit: $GITHUB_SHA"
+            echo "app.py:     $(stat -c '%s' $DIST/app.py) bytes  ($(md5sum $DIST/app.py | awk '{print $1}'))"
+            echo "index.html: $(stat -c '%s' $DIST/templates/index.html) bytes  ($(md5sum $DIST/templates/index.html | awk '{print $1}'))"
+          } > "$DIST/MANIFEST.txt"
+
+      - name: Create tarball
+        run: tar -czf iim-client.tar.gz iim-client-dist/
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: iim-client.tar.gz
+          generate_release_notes: true
+          fail_on_unmatched_files: true

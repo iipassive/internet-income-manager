@@ -1,0 +1,16 @@
+[Unit]
+Description=Internet Income Manager Web UI
+After=network.target docker.service
+Wants=docker.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/internet-income-manager
+ExecStart=/opt/internet-income-manager/venv/bin/python3 /opt/internet-income-manager/app.py
+Restart=always
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

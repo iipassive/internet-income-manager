@@ -1,0 +1,2101 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>II Manager</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* ====== THEME TOKENS ====== */
+:root,[data-theme="dark"]{
+  --bg:#0d0f17;--bg2:#161923;--bg3:#1e2130;--bg4:#262a3a;--bg-glass:rgba(22,25,35,.75);
+  --surface:#1a1d2b;--surface2:#22263a;--border:#2a2e42;--border2:#363b54;
+  --t1:#eaedf4;--t2:#8b92aa;--t3:#5a6080;
+  --accent:#ef4444;--accent2:#dc2626;
+  --green:#22c55e;--red:#ef4444;--yellow:#eab308;--blue:#3b82f6;--purple:#8b5cf6;--cyan:#06b6d4;
+  --glow:rgba(239,68,68,.08);
+  --sidebar-bg:#0a0c14;
+  --card-hover:rgba(239,68,68,.04);
+  --shadow:0 1px 4px rgba(0,0,0,.3);--shadow2:0 8px 24px rgba(0,0,0,.4);
+  --mono:'DM Mono',monospace;--sans:'Inter',sans-serif;
+}
+[data-theme="light"]{
+  --bg:#faf5f3;--bg2:#ffffff;--bg3:#f5f0ee;--bg4:#ebe5e2;--bg-glass:rgba(255,255,255,.8);
+  --surface:#ffffff;--surface2:#faf5f3;--border:#e8e0dc;--border2:#d4ccc8;
+  --t1:#1a1015;--t2:#6b5e58;--t3:#9a8e88;
+  --accent:#ef4444;--accent2:#dc2626;
+  --glow:rgba(239,68,68,.06);
+  --sidebar-bg:#1a1015;
+  --card-hover:rgba(239,68,68,.03);
+  --shadow:0 1px 4px rgba(0,0,0,.06);--shadow2:0 8px 24px rgba(0,0,0,.1);
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100vh;font-size:13px;transition:background .3s,color .3s;position:relative;overflow-x:hidden}
+body::before,body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none}
+body::before{opacity:.45;background:
+  radial-gradient(circle at 12% 18%,rgba(255,255,255,.75) 0 1px,transparent 2px),
+  radial-gradient(circle at 38% 42%,rgba(255,255,255,.45) 0 1px,transparent 2px),
+  radial-gradient(circle at 64% 26%,rgba(6,182,212,.55) 0 1px,transparent 2px),
+  radial-gradient(circle at 82% 68%,rgba(255,255,255,.5) 0 1px,transparent 2px),
+  radial-gradient(circle at 28% 76%,rgba(239,68,68,.38) 0 1px,transparent 2px);
+  background-size:260px 260px,340px 340px,420px 420px,310px 310px,480px 480px;
+  animation:starDrift 38s linear infinite,starTwinkle 3.6s ease-in-out infinite alternate}
+body::after{opacity:.22;background:
+  radial-gradient(circle at 50% 50%,rgba(255,255,255,.18) 0 1px,transparent 1.5px),
+  radial-gradient(circle at 20% 80%,rgba(6,182,212,.22) 0 1px,transparent 1.5px);
+  background-size:90px 90px,140px 140px;animation:starDrift2 70s linear infinite reverse}
+@keyframes starTwinkle{from{opacity:.25;filter:brightness(.85)}to{opacity:.55;filter:brightness(1.25)}}
+@keyframes starDrift{from{background-position:0 0,0 0,0 0,0 0,0 0}to{background-position:260px 260px,-340px 170px,210px -420px,-310px -155px,480px 240px}}
+@keyframes starDrift2{from{background-position:0 0,0 0}to{background-position:180px -90px,-140px 140px}}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* ====== TOPBAR ====== */
+.topbar{position:fixed;top:0;left:0;right:0;height:36px;background:var(--sidebar-bg);display:flex;align-items:center;justify-content:flex-end;gap:16px;z-index:200;padding:0 18px;font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.5)}
+.topbar .ti{display:flex;align-items:center;gap:4px}
+.topbar .tv{color:rgba(255,255,255,.85);font-weight:500}
+.topbar .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)}
+.topbar .dot.off{background:var(--red);box-shadow:0 0 6px var(--red)}
+.theme-btn{background:none;border:1px solid rgba(255,255,255,.15);border-radius:6px;color:rgba(255,255,255,.6);cursor:pointer;padding:3px 8px;font-size:12px;transition:.2s}
+.theme-btn:hover{border-color:rgba(255,255,255,.3);color:#fff}
+#lang-sel{appearance:none;-webkit-appearance:none;-moz-appearance:none;background-color:rgba(20,24,36,.95);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:3px 10px;font-size:12px;cursor:pointer;min-width:90px}
+#lang-sel:hover{border-color:rgba(255,255,255,.3)}
+#lang-sel option{background-color:#141824;color:#e5e7eb;padding:6px}
+[data-theme="light"] #lang-sel{background-color:#ffffff;color:#1f2937;border-color:rgba(0,0,0,.15)}
+[data-theme="light"] #lang-sel option{background-color:#ffffff;color:#1f2937}
+.lic-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px}
+.lic-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:10px}
+.lic-cell{min-width:0}
+.lic-l{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:3px}
+.lic-v{font-size:13px;color:var(--t1);font-weight:600;word-break:break-all;line-height:1.4}
+.lic-v.mono{font-family:var(--mono);font-size:12px;cursor:pointer}
+.lic-v.mono:hover{color:var(--accent)}
+.tier-pill{display:inline-block;color:#fff;font-size:10px;padding:2px 9px;border-radius:10px;text-transform:uppercase;font-weight:700;letter-spacing:.05em;vertical-align:middle}
+.lic-cd{margin:8px 0 6px;font-size:11px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.lic-cd-label{color:var(--t2);font-weight:600;min-width:140px}
+.lic-cd.ok .lic-cd-label{color:#10b981}
+.lic-cd.wn .lic-cd-label{color:#f59e0b}
+.lic-cd.er .lic-cd-label{color:#ef4444}
+.lic-cd-bar{flex:1;height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;min-width:120px}
+.lic-cd-fill{height:100%;transition:width .4s,background .4s}
+.lic-usg{font-size:11px;color:var(--t3)}
+@media(max-width:780px){.lic-grid{grid-template-columns:repeat(2,1fr)}}
+.tier-chip{display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.85);padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;transition:.15s}
+.tier-chip:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.25)}
+.tier-chip.trial{color:#fbbf24;border-color:rgba(251,191,36,.3)}
+.tier-chip.basic{color:#60a5fa;border-color:rgba(96,165,250,.35)}
+.tier-chip.pro{color:#c084fc;border-color:rgba(192,132,252,.4);background:linear-gradient(135deg,rgba(192,132,252,.15),rgba(168,85,247,.1))}
+.upd-btn{display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#10b981,#059669);border:none;color:#fff;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;animation:upd-pulse 2s ease-in-out infinite;box-shadow:0 0 0 0 rgba(16,185,129,.6)}
+.upd-btn:hover{transform:translateY(-1px);filter:brightness(1.1)}
+.upd-dot{width:7px;height:7px;border-radius:50%;background:#fff;box-shadow:0 0 6px rgba(255,255,255,.8)}
+@keyframes upd-pulse{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.5)}50%{box-shadow:0 0 0 6px rgba(16,185,129,0)}}
+
+/* ====== SIDEBAR ====== */
+.sidebar{position:fixed;top:36px;left:0;bottom:0;width:200px;background:var(--sidebar-bg);display:flex;flex-direction:column;z-index:100;overflow-y:auto}
+.sb-head{padding:14px;border-bottom:1px solid rgba(255,255,255,.06)}
+.sb-head h1{font-size:14px;font-weight:800;color:#fff;display:flex;align-items:center;gap:6px}
+.sb-head h1 .accent{color:var(--accent)}
+.sb-lbl{font-size:9px;font-weight:700;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.14em;padding:12px 14px 4px}
+.sb-item{display:flex;align-items:center;gap:8px;padding:8px 14px;cursor:pointer;font-size:12px;font-weight:500;color:rgba(255,255,255,.45);transition:.15s;border-left:2px solid transparent;margin:0 4px;border-radius:0 6px 6px 0}
+.sb-item:hover{color:rgba(255,255,255,.8);background:rgba(255,255,255,.04)}
+.sb-item.active{color:#fff;background:rgba(239,68,68,.1);border-left-color:var(--accent)}
+.sb-item .icon{font-size:15px;width:20px;text-align:center;flex-shrink:0}
+.sb-item .name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-item .badge{font-size:9px;font-weight:700;padding:1px 5px;border-radius:6px;font-family:var(--mono)}
+.sb-item .badge.on{background:var(--green);color:#000}
+.sb-item .badge.off{color:rgba(255,255,255,.3)}
+
+/* Donate card bottom of sidebar */
+.sb-donate{padding:12px;border-top:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.25);flex-shrink:0}
+.sb-donate .lbl{font-size:9px;font-weight:800;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.sb-donate .qr-box{background:#fff;padding:6px;border-radius:8px;display:flex;justify-content:center;margin-bottom:6px}
+.sb-donate .qr-box img{display:block;width:100%;max-width:140px;height:auto}
+.sb-donate .chain{display:flex;gap:4px;margin-bottom:6px}
+.sb-donate .chain button{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.55);padding:4px 6px;border-radius:5px;font-size:10px;font-weight:600;cursor:pointer;font-family:var(--mono)}
+.sb-donate .chain button.active{background:rgba(34,197,94,.18);border-color:rgba(34,197,94,.4);color:#22c55e}
+.sb-donate .addr{font-family:var(--mono);font-size:9px;color:rgba(255,255,255,.5);background:rgba(0,0,0,.4);padding:6px 8px;border-radius:5px;word-break:break-all;line-height:1.4;cursor:pointer;border:1px solid rgba(255,255,255,.05);transition:.15s}
+.sb-donate .addr:hover{border-color:var(--accent);color:#fff}
+
+/* Container table */
+.ct-table{width:100%;border-collapse:collapse;margin-top:8px;font-size:12px;font-family:var(--sans)}
+.ct-table thead th{background:var(--bg3);color:var(--t3);text-align:left;padding:8px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border);font-family:var(--sans)}
+.ct-table tbody td{padding:7px 12px;border-bottom:1px solid var(--border);vertical-align:middle;font-family:var(--sans)}
+.ct-table tbody tr:hover td{background:rgba(239,68,68,.04)}
+.ct-table tbody tr.selected td{background:rgba(59,130,246,.08)}
+.ct-table .ct-name{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;font-weight:500;letter-spacing:.01em;color:var(--t1)}
+.ct-table .ct-uuid{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:10.5px;color:var(--t2)}
+.ct-table .ct-chk{accent-color:var(--accent);width:14px;height:14px;cursor:pointer}
+.ct-table button{padding:4px 8px;font-size:11px}
+.ct-toolbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:8px 0;font-size:11px;color:var(--t2);font-family:var(--sans)}
+.ct-toolbar select{width:auto;padding:4px 8px;font-size:11px;height:auto;font-family:var(--sans)}
+.ct-toolbar button{padding:4px 8px;font-size:11px}
+
+/* Deploy progress bar */
+.deploy-bar{margin-top:10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:10px;font-size:11px}
+.deploy-bar .lbl{font-weight:600;color:var(--t2);white-space:nowrap}
+.deploy-bar .pct{font-family:var(--mono);font-weight:700;color:var(--accent);min-width:40px;text-align:right}
+.deploy-bar .track{flex:1;height:8px;background:var(--bg);border-radius:999px;overflow:hidden;position:relative}
+.deploy-bar .fill{height:100%;background:linear-gradient(90deg,var(--accent),#ec4899);border-radius:999px;transition:width .3s;position:relative}
+.deploy-bar .fill::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);animation:shine 1.5s infinite}
+@keyframes shine{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+.deploy-bar.done .fill{background:var(--green);animation:none}
+.deploy-bar.done .pct{color:var(--green)}
+
+/* ====== MAIN ====== */
+.main{margin-left:200px;margin-top:36px;min-height:calc(100vh - 36px);padding:20px 28px}
+.page{display:none;animation:fadeIn .25s}.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* ====== CARDS ====== */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;box-shadow:var(--shadow);transition:.2s}
+.card:hover{border-color:var(--border2)}
+.glass-card{background:var(--bg-glass);backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:12px;padding:16px;transition:.25s}
+.glass-card:hover{border-color:var(--accent);box-shadow:0 0 20px var(--glow)}
+
+/* Stats */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:20px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;box-shadow:var(--shadow)}
+.stat .label{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em}
+.stat .value{font-size:22px;font-weight:700;margin-top:3px;font-family:var(--mono)}
+
+/* Section */
+.section{margin-bottom:24px}
+.sec-title{font-size:15px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.sec-title .count{font-size:12px;color:var(--t3);font-weight:400}
+
+/* App header */
+.app-hdr{display:flex;align-items:center;gap:14px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.app-hdr .app-icon{font-size:28px;width:48px;height:48px;display:flex;align-items:center;justify-content:center;border-radius:12px;flex-shrink:0}
+.app-hdr h2{font-size:20px;font-weight:800}.app-hdr p{font-size:12px;color:var(--t2);margin-top:2px}
+.app-hdr .actions{margin-left:auto;display:flex;gap:6px}
+
+/* Credential bar */
+.cred-bar{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;box-shadow:var(--shadow);margin-bottom:16px;display:flex;gap:12px;align-items:end;flex-wrap:wrap}
+.cred-bar .fg{flex:1;min-width:150px}
+
+/* Device grid */
+.dev-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.dev-card{background:var(--bg-glass);backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:10px;padding:14px;transition:.25s;position:relative}
+.dev-card:hover{border-color:var(--accent);box-shadow:0 0 16px var(--glow)}
+.dev-card .hdr{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.dev-card .sel{accent-color:var(--accent);width:15px;height:15px;flex-shrink:0}
+.dev-card .nm{font-family:var(--mono);font-size:11px;font-weight:500;flex:1;word-break:break-all}
+.dev-card .st{font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:6px 8px;border-radius:7px;margin:6px 0 8px;background:rgba(239,68,68,.1);color:var(--red);font-family:var(--mono);text-transform:uppercase}
+.dev-card .st.ok{background:rgba(34,197,94,.14);color:var(--green)}
+.dev-card .st .dot{width:7px;height:7px;border-radius:50%}
+.dev-card .st .dot.up{background:var(--green);box-shadow:0 0 4px var(--green)}.dev-card .st .dot.dn{background:var(--red)}
+.dev-card .proxy{font-size:10px;color:var(--t3);font-family:var(--mono);margin-bottom:6px}
+.dev-card .uuid-bar{font-size:10px;color:var(--accent);font-family:var(--mono);background:var(--bg3);padding:5px 8px;border-radius:6px;margin-bottom:8px;display:flex;align-items:center;gap:4px;word-break:break-all}
+.dev-card .uuid-bar .cp{cursor:pointer;font-size:14px;opacity:.5;flex-shrink:0}.dev-card .uuid-bar .cp:hover{opacity:1}
+.dev-card .btns{display:flex;gap:4px;flex-wrap:wrap}
+
+/* Account card */
+.acc-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:12px;box-shadow:var(--shadow);transition:border-color .15s}
+.acc-card:hover{border-color:var(--border2)}
+.acc-hdr{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.acc-hdr .nm{font-weight:700;font-size:14px}
+.acc-creds{display:flex;gap:10px;align-items:end;flex-wrap:wrap;padding:12px 0;border-bottom:1px solid var(--border)}
+.acc-creds .fg{flex:1;min-width:170px}
+.acc-creds-empty{padding:10px 0;font-size:11px;color:var(--t3);border-bottom:1px solid var(--border);font-style:italic}
+.acc-cts{padding-top:12px}
+.acc-empty-cts{padding:18px;text-align:center;font-size:12px;color:var(--t3);border:1px dashed var(--border);border-radius:8px;margin-top:12px}
+
+/* App info chips */
+.app-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center}
+.app-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:500;font-family:var(--mono);background:var(--bg3);border:1px solid var(--border);color:var(--t2)}
+.app-chip.ok{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.3);color:var(--green)}
+.app-chip.warn{background:rgba(234,179,8,.1);border-color:rgba(234,179,8,.3);color:var(--yellow)}
+.app-chip.link{background:rgba(59,130,246,.1);border-color:rgba(59,130,246,.3);color:var(--blue);cursor:pointer;text-decoration:none}
+.app-chip.link:hover{background:rgba(59,130,246,.2)}
+.app-chip b{font-weight:700;color:inherit}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--t1);transition:.15s;font-family:var(--sans);white-space:nowrap}
+.btn:hover{border-color:var(--t3);box-shadow:var(--shadow)}
+.btn-accent{background:var(--accent);border-color:transparent;color:#fff}.btn-accent:hover{background:var(--accent2)}
+.btn-green{background:var(--green);border-color:transparent;color:#fff}
+.btn-red{background:var(--red);border-color:transparent;color:#fff}
+.btn-sm{padding:4px 8px;font-size:10px;border-radius:5px}
+.btn-icon{background:none;border:none;padding:3px;cursor:pointer;font-size:14px;opacity:.4;transition:.12s;border-radius:4px}
+.btn-icon:hover{opacity:1;background:var(--bg3)}
+
+/* Toggle */
+.toggle{position:relative;width:34px;height:18px;flex-shrink:0}.toggle input{display:none}
+.toggle .sl{position:absolute;inset:0;background:var(--border);border-radius:9px;cursor:pointer;transition:.2s}
+.toggle .sl::before{content:'';position:absolute;width:12px;height:12px;left:3px;top:3px;background:var(--t3);border-radius:50%;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.toggle input:checked+.sl{background:var(--green)}.toggle input:checked+.sl::before{transform:translateX(16px);background:#fff}
+
+/* Inputs */
+.inp{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--t1);font-family:var(--mono);font-size:12px;outline:none;transition:.15s;width:100%}
+.inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--glow)}
+textarea.inp{resize:vertical;min-height:80px}
+.fg{margin-bottom:8px}
+.fg label{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:3px}
+
+/* Badge */
+.badge{font-size:10px;padding:2px 7px;border-radius:5px;font-weight:600;font-family:var(--mono)}
+.b-green{background:rgba(34,197,94,.12);color:var(--green)}.b-red{background:rgba(239,68,68,.12);color:var(--red)}
+.b-blue{background:rgba(59,130,246,.1);color:var(--blue)}.b-yellow{background:rgba(234,179,8,.12);color:var(--yellow)}
+
+/* Proxy chips */
+.pchip{font-size:10px;padding:3px 7px;border-radius:5px;background:var(--bg3);border:1px solid var(--border);font-family:var(--mono);color:var(--t2);display:inline-flex;align-items:center;gap:3px;margin:2px}
+.pchip .x{cursor:pointer;font-size:12px;color:var(--t3)}.pchip .x:hover{color:var(--red)}
+
+/* Proxy list */
+.px-row{display:grid;grid-template-columns:18px 38px 42px minmax(0,1fr) auto 22px;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:4px;box-shadow:var(--shadow)}
+.px-row .idx{font-family:var(--mono);font-size:10px;color:var(--t3);text-align:right}
+.px-row .url{min-width:0}
+.px-row .main{font-family:var(--mono);font-size:11px;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0;min-height:0;padding:0}
+.px-row .meta{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.px-row .pill{font-family:var(--mono);font-size:9px;padding:2px 5px;border-radius:5px;background:var(--bg3);color:var(--t2);border:1px solid var(--border)}
+.px-row.off{opacity:.3}
+
+/* Proxy selector */
+.px-sel{max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;background:var(--bg3)}
+.px-opt{display:flex;align-items:center;gap:7px;padding:7px 10px;font-size:12px;cursor:pointer;border-bottom:1px solid var(--border);transition:.08s}
+.px-opt:hover{background:var(--bg4)}.px-opt:last-child{border:none}
+.px-opt input{accent-color:var(--accent);width:16px;height:16px}
+.px-opt .u{font-family:var(--mono);flex:1;word-break:break-all}
+
+/* Modal */
+.mo-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(6px);z-index:500;display:none;align-items:center;justify-content:center}
+.mo-bg.show{display:flex}
+.mo{background:var(--surface);border:1px solid var(--border);border-radius:14px;width:94%;max-width:560px;max-height:85vh;overflow-y:auto;padding:22px 26px;box-shadow:var(--shadow2)}
+.mo.wide{max-width:980px}
+.mo h3{font-size:17px;font-weight:700;margin-bottom:12px}
+.mo .fg .inp{font-size:13px;padding:10px 14px}
+.mo-ft{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.mo-ft .btn{font-size:13px;padding:9px 20px}
+
+/* Log */
+.logbox{background:#0a0c14;color:rgba(255,255,255,.6);border-radius:8px;padding:12px;font-family:var(--mono);font-size:11px;line-height:1.5;max-height:350px;overflow-y:auto;white-space:pre-wrap}
+
+/* Toast */
+.toast-c{position:fixed;bottom:14px;right:14px;z-index:600;display:flex;flex-direction:column;gap:4px}
+.toast{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;min-width:220px;box-shadow:var(--shadow2);animation:sUp .2s}
+.toast.ok{border-left:3px solid var(--green)}.toast.er{border-left:3px solid var(--red)}.toast.if{border-left:3px solid var(--blue)}
+@keyframes sUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+.empty{text-align:center;padding:30px;color:var(--t3);font-size:13px}
+.toolbar{display:flex;gap:6px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.settings-grp{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;box-shadow:var(--shadow)}
+.px-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.px-card{background:var(--bg-glass);backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:10px;padding:12px;position:relative;min-height:78px;box-shadow:var(--shadow);transition:.16s;cursor:pointer}
+.px-card:hover{border-color:var(--accent);box-shadow:0 0 16px var(--glow);transform:translateY(-2px)}
+.px-card.off{opacity:.45}
+.px-card .top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.px-card .title{font-size:13px;font-weight:800;flex:1;color:var(--t1)}
+.px-card .type{font-size:11px;font-weight:800;color:var(--t2);font-family:var(--mono);text-transform:uppercase}
+.px-card .host{font-family:var(--mono);font-size:10px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:4px}
+/* Round checkbox */
+.px-chk{appearance:none;-webkit-appearance:none;width:16px;height:16px;border:2px solid var(--border2);border-radius:50%;background:var(--bg3);cursor:pointer;position:relative;flex-shrink:0;transition:.15s;margin:0}
+.px-chk:hover{border-color:var(--accent)}
+.px-chk:checked{background:var(--accent);border-color:var(--accent)}
+.px-chk:checked::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:6px;height:6px;background:#fff;border-radius:50%}
+/* Tun status: chip text + card-wide gradient by state */
+.px-card.tun-running{background:linear-gradient(90deg,rgba(34,197,94,.18),var(--bg-glass) 70%)}
+.px-card.tun-stopped{background:linear-gradient(90deg,rgba(234,179,8,.20),var(--bg-glass) 70%)}
+.px-card.tun-missing{background:linear-gradient(90deg,rgba(239,68,68,.22),var(--bg-glass) 70%)}
+.px-card.tun-dead{background:linear-gradient(90deg,rgba(220,38,38,.32),var(--bg-glass) 70%)}
+.tun-status{font-size:9px;font-weight:700;font-family:var(--mono);text-transform:uppercase;letter-spacing:.04em;padding:2px 7px;border-radius:999px;white-space:nowrap;flex-shrink:0;cursor:help}
+.tun-status.running{background:rgba(34,197,94,.22);color:var(--green);border:1px solid rgba(34,197,94,.35)}
+.tun-status.stopped{background:rgba(234,179,8,.22);color:var(--yellow);border:1px solid rgba(234,179,8,.35)}
+.tun-status.missing{background:rgba(239,68,68,.22);color:var(--red);border:1px solid rgba(239,68,68,.35);animation:pulse 1.5s infinite}
+.tun-status.dead{background:rgba(220,38,38,.28);color:#fca5a5;border:1px solid rgba(220,38,38,.5);animation:pulse 1.5s infinite}
+.tun-status.unchecked{background:rgba(100,116,139,.2);color:var(--t3);border:1px solid rgba(100,116,139,.3)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.mini-table{width:100%;border-collapse:collapse;font-size:12px}
+.mini-table th{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);text-align:left;border-bottom:1px solid var(--border);padding:8px}
+.mini-table td{border-bottom:1px solid var(--border);padding:8px;vertical-align:top}
+.mini-table .mono{font-family:var(--mono);font-size:11px;word-break:break-all}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-bottom:12px}
+.info-box{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px}
+.info-box .k{font-size:10px;text-transform:uppercase;color:var(--t3);font-weight:700;margin-bottom:4px}
+.info-box .v{font-family:var(--mono);font-size:12px;word-break:break-all}
+
+@media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:none}.main{margin-left:0;padding:12px}.mob-btn{display:flex!important}}
+.mob-btn{display:none;position:fixed;top:40px;left:6px;z-index:150;width:32px;height:32px;background:var(--surface);border:1px solid var(--border);border-radius:8px;align-items:center;justify-content:center;cursor:pointer;font-size:14px}
+</style>
+</head>
+<body data-theme="dark">
+<div class="topbar">
+  <div class="ti"><span>⏱</span><span class="tv" id="tb-up">--</span></div>
+  <div class="ti"><span>CPU</span><span class="tv" id="tb-cpu">--</span></div>
+  <div class="ti"><span>RAM</span><span class="tv" id="tb-ram">--</span></div>
+  <div class="ti"><span>💾</span><span class="tv" id="tb-disk">--</span></div>
+  <div class="ti"><span>🌡️</span><span class="tv" id="tb-temp">--</span></div>
+  <div class="ti"><span>🐳</span><span class="tv" id="tb-ct">--</span></div>
+  <div class="ti"><div class="dot" id="tb-dot"></div><span class="tv" id="tb-st">--</span></div>
+  <button class="tier-chip" id="tier-chip" onclick="openUpgrade()" title="License tier — click to upgrade">💎 <span id="tier-name">…</span></button>
+  <button class="upd-btn" id="upd-btn" onclick="openUpdateModal()" style="display:none" title="Update available"><span class="upd-dot"></span><span id="upd-label" data-i18n="update_available">Update</span></button>
+  <select class="theme-btn" id="lang-sel" onchange="setLang(this.value)"></select>
+  <button class="theme-btn" onclick="toggleTheme()" id="theme-toggle">☀️</button>
+</div>
+<div class="sidebar" id="sidebar">
+  <div class="sb-head"><h1>💰 <span class="accent">II</span> Manager</h1></div>
+  <div class="sb-item active" data-page="dashboard" onclick="showPage('dashboard')"><span class="icon">📊</span><span class="name" data-i18n="dashboard">Dashboard</span></div>
+  <div class="sb-lbl" data-i18n="apps">Apps</div>
+  <div id="sb-apps" style="flex:1;min-height:0;overflow-y:auto"></div>
+  <div class="sb-donate" id="sb-donate"></div>
+</div>
+<div class="mob-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</div>
+<div class="main">
+  <div class="page active" id="pg-dashboard">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <h2 style="font-size:18px;font-weight:800;flex:1" data-i18n="dashboard">Dashboard</h2>
+      <button class="btn btn-sm" onclick="appsManager()" data-i18n="apps_btn">Apps</button>
+    </div>
+    <div class="stats-row" id="dash-stats"></div>
+    <div class="section" id="dash-lic-section"></div>
+    <div class="section">
+      <div class="sec-title">⚙️ <span data-i18n="settings">Settings</span></div>
+      <div class="settings-grp">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+          <span style="font-size:12px;color:var(--t2)" data-i18n="device_label">Device Name:</span>
+          <input class="inp" id="s-dev" style="width:180px" placeholder="ubuntu">
+          <button class="btn btn-accent btn-sm" onclick="savSet()">💾</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-size:12px;color:var(--t2)">Auto-start after reboot:</span>
+          <select class="inp" id="s-boot" style="width:auto;padding:4px 8px">
+            <option value="sequential">🐢 Sequential (recommended)</option>
+            <option value="off">🚫 Off — never auto-start</option>
+          </select>
+          <span style="font-size:11px;color:var(--t3)">Batch:</span>
+          <input class="inp" id="s-boot-batch" type="number" min="1" max="20" style="width:60px;padding:4px 6px" placeholder="3">
+          <span style="font-size:11px;color:var(--t3)">Delay (s):</span>
+          <input class="inp" id="s-boot-delay" type="number" min="0" step="0.5" style="width:60px;padding:4px 6px" placeholder="2">
+          <button class="btn btn-accent btn-sm" onclick="savBoot()">💾</button>
+          <button class="btn btn-sm" onclick="triggerBootStart()" title="Run boot orchestrator NOW (e.g. after manually starting docker)">▶ Resume now</button>
+        </div>
+        <div id="boot-progress" style="margin-top:10px;font-size:11px;color:var(--t2);display:none"></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="sec-title">🌐 <span data-i18n="proxy_manager">Proxy Manager</span> <span class="count" id="px-cnt"></span></div>
+      <div class="toolbar" style="flex-wrap:wrap;align-items:center">
+        <button class="btn btn-accent btn-sm" onclick="showAddPx()">+ <span data-i18n="add">Add</span></button>
+        <button class="btn btn-sm" onclick="showImpPx()">📥 <span data-i18n="import_">Import</span></button>
+        <button class="btn btn-sm" onclick="showAddPg(true)">📦 + <span data-i18n="group">Group</span></button>
+        <button class="btn btn-sm" onclick="syncTuns()" title="Ensure shared tun container exists for each enabled proxy (one per proxy, reused by all apps)">🔗 Sync tuns</button>
+        <button class="btn btn-sm" onclick="checkAllLive()" title="Check actual proxy live state via real HTTP request (auto every 15min)">🔍 Check all</button>
+        <button class="btn btn-red btn-sm" id="pxBD" style="display:none" onclick="bulkDelPx()">🗑️</button>
+        <button class="btn btn-sm" onclick="clrPx()" data-i18n="clear_all">Clear All</button>
+        <div id="pg-chips" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;flex:1;min-width:0"></div>
+      </div>
+      <div id="px-list"></div>
+    </div>
+    <div class="section">
+      <div class="sec-title">🛠️ <span data-i18n="custom_apps">Custom Docker Apps</span> <span class="count" id="ca-cnt"></span>
+        <button class="btn btn-accent btn-sm" onclick="showAddCa()" style="margin-left:auto" data-i18n="add_custom">+ Add custom app</button>
+      </div>
+      <div id="ca-list"></div>
+    </div>
+    <div class="section">
+      <div class="sec-title" style="color:var(--red)">⚠️ Danger Zone</div>
+      <div class="card" style="border-color:rgba(239,68,68,.3)">
+        <div id="disk-info" style="font-size:11px;color:var(--t2);font-family:var(--mono);margin-bottom:12px">⏳ loading disk usage...</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <button class="btn" onclick="cleanDisabled()" title="Remove all stopped/exited containers to free disk space">🧹 Clean disabled containers</button>
+          <button class="btn btn-red" onclick="showResetMo()" title="Wipe everything: containers, proxies, accounts, images">🧨 Reset to default</button>
+          <span style="width:1px;height:24px;background:var(--border);margin:0 4px"></span>
+          <button class="btn" onclick="showRebootMo()" title="Reboot the host server (all services restart)">🔁 Reboot server</button>
+          <button class="btn btn-red" onclick="showShutdownMo()" title="Power off the host server (need manual power-on)">⏻ Shutdown server</button>
+          <button class="btn btn-sm" onclick="loadDisk()" style="margin-left:auto">🔄</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="page" id="pg-app"></div>
+</div>
+<div class="mo-bg" id="mo-bg"><div class="mo" id="moc"></div></div>
+<div class="toast-c" id="tc"></div>
+<script>
+let apps=[],proxies=[],groups=[],curApp=null;
+let pxPage=1,pxPer=20,pxHost='',pxGroupFilter='';
+let lastPxIdx=null,curPageIds=[];
+
+// ====== i18n ======
+const LANGS={en:'English',vi:'Tiếng Việt',zh:'中文',ru:'Русский',es:'Español',ar:'العربية'};
+const I18N={
+  en:{dashboard:'Dashboard',apps:'Apps',accounts:'Accounts',proxies_active:'Proxies Active',containers:'Containers',cpu_load:'CPU Load',memory:'Memory',disk:'Disk',settings:'Settings',device_name:'Device Name',proxy_manager:'Proxy Manager',add:'Add',import_:'Import',group:'Group',clear_all:'Clear All',filter_host:'Filter host...',page:'Page',filtered:'Filtered',clear_sel:'Clear selection',selected:'Selected',hint_shift:'Hold Shift to select range',custom_apps:'Custom Docker Apps',add_custom:'+ Add custom app',deploy:'Deploy',restart:'Restart',stop:'Stop',edit:'Edit',cancel:'Cancel',save:'Save',create:'Create',saved:'Saved',err:'Error',confirm_delete:'Delete?',proxy_groups:'Proxy Groups',new_group:'New Proxy Group',edit_group:'Edit Group',group_name:'Group name',proxies_in_group:'Proxies in group',no_proxies:'No proxies',no_groups:'No groups yet — tick proxies then click 📦 + Group',register:'Register',from_group:'From group',apply_add:'+ Add',apply_only:'= Only',apply_sub:'− Subtract',no_group_selected:'No group selected',pre_selected:'Pre-selected',no_proxies_ticked:'No proxies ticked — tick checkbox below or close modal, select proxies in Proxy Manager then click + Group again.',proxies_label:'Proxies',new_proxy:'New Proxy',edit_proxy:'Edit Proxy',import_proxies:'Import Proxies',one_per_line:'One proxy per line',create_group_optional:'Create group for this batch (optional)',leave_empty_no_group:'Leave empty if no group needed',group_hint:'If named, imported proxies will auto-grouped.',need_name:'Name required',need_key:'Key required',need_cmd:'Cmd template required',saved_creds:'Saved credentials',no_credentials:'This app needs no credentials.',earnapp_uuid_hint:'EarnApp auto-generates UUID on Deploy. Copy UUID from container card to link to dashboard.',no_containers:'No containers yet. Click ▶ Deploy to start (1 container per proxy).',deploy_account:'Deploy this account',restart_account:'Restart containers',stop_account:'Stop containers',delete_containers:'Delete all containers of this account (account kept)',edit_account:'Edit proxy/label',delete_account:'Delete account',confirm_stop_acc:'Stop all containers of this account?',confirm_delete_cts:'Delete all containers of this account? (Account is kept, only containers removed)',confirm_delete_group:'Delete group? (proxies kept)',no_accounts_yet:'No accounts yet. Click + Account to start.',pull_image:'Pull / Update Image',register_open:'Open registration / ref link in new tab',register_no_ref:'No ref configured for this app — go to Control Server (port 18881) → Ref Links',no_ref:'Ref not configured. Click for guidance.',select_all_page:'Select page',select_all_filtered:'Select filtered',language:'Language',custom_app_empty:'No custom apps. Click + Add custom app to define your own Docker image (with credentials + env vars).',ca_key_help:'Key (slug) *',ca_name_help:'Name *',ca_icon_help:'Icon (emoji)',ca_desc:'Description',ca_pay:'Pay',ca_color:'Color',ca_limit:'Limit/acc',ca_fields_help:'Credential fields (form shown per-account)',ca_no_fields:'No fields. If app needs email/password/api_key, click + Field.',ca_cmd_help:'Docker cmd template *',ca_cmd_placeholders:'Placeholders: {name} {net} and field keys (e.g. {email}, {api_key})',ca_cmd_required_meta:'Must contain {name} and {net}. {name} = container name · {net} = network mode (--network container:tun-...)',ca_delete_confirm:'Delete custom app',ca_data_warn:'Account data will also be deleted',copy_url:'Copy URL',no_proxies_yet:'No proxies yet',proxy_count_active:'active',proxy_count_total:'total',check_update:'Check Update',apps_btn:'Apps',device_label:'Device Name:',save_btn:'💾',start:'Start',swap_proxy:'🔀 Proxy',log:'Log',deployed:'deployed',failed:'failed',stopped:'Stopped',restarted:'Restarted',removed:'Removed',containers_word:'containers',accs_word:'accs',proxies_word:'proxies',running_word:'running',not_pulled:'not pulled',built:'built',pulled:'image pulled'},
+  vi:{dashboard:'Bảng điều khiển',apps:'Ứng dụng',accounts:'Tài khoản',proxies_active:'Proxy hoạt động',containers:'Container',cpu_load:'Tải CPU',memory:'Bộ nhớ',disk:'Ổ đĩa',settings:'Cài đặt',device_name:'Tên thiết bị',proxy_manager:'Quản lý Proxy',add:'Thêm',import_:'Nhập',group:'Nhóm',clear_all:'Xoá hết',filter_host:'Lọc host...',page:'Trang',filtered:'Đã lọc',clear_sel:'Bỏ chọn',selected:'Đã chọn',hint_shift:'Giữ Shift để chọn dãy',custom_apps:'App Docker tự định nghĩa',add_custom:'+ Thêm app custom',deploy:'Triển khai',restart:'Khởi động lại',stop:'Dừng',edit:'Sửa',cancel:'Huỷ',save:'Lưu',create:'Tạo',saved:'Đã lưu',err:'Lỗi',confirm_delete:'Xoá?',proxy_groups:'Nhóm Proxy',new_group:'Nhóm Proxy mới',edit_group:'Sửa nhóm',group_name:'Tên nhóm',proxies_in_group:'Proxy trong nhóm',no_proxies:'Chưa có proxy',no_groups:'Chưa có nhóm — tick proxy rồi bấm 📦 + Nhóm',register:'Đăng ký',from_group:'Từ nhóm',apply_add:'+ Thêm',apply_only:'= Chỉ',apply_sub:'− Bỏ',no_group_selected:'Chưa chọn nhóm',pre_selected:'Đã chọn sẵn',no_proxies_ticked:'Chưa tick proxy nào',proxies_label:'Proxy',new_proxy:'Proxy mới',edit_proxy:'Sửa Proxy',import_proxies:'Nhập Proxy',one_per_line:'Mỗi proxy 1 dòng',create_group_optional:'Tạo nhóm cho lô này (tuỳ chọn)',leave_empty_no_group:'Để trống nếu không cần',group_hint:'Có tên thì proxy import sẽ tự gom nhóm',need_name:'Cần tên',need_key:'Cần key',need_cmd:'Cần cmd template',saved_creds:'Đã lưu credentials',no_credentials:'App này không cần credentials',earnapp_uuid_hint:'EarnApp tự sinh UUID khi Deploy. Copy UUID từ container card.',no_containers:'Chưa có container. Bấm ▶ Deploy để khởi tạo.',deploy_account:'Deploy account này',restart_account:'Restart container của account',stop_account:'Stop container của account',delete_containers:'Xoá container của account (giữ account)',edit_account:'Sửa proxy/nhãn',delete_account:'Xoá account',confirm_stop_acc:'Stop toàn bộ container của account này?',confirm_delete_cts:'Xoá toàn bộ container của account? (Giữ account)',confirm_delete_group:'Xoá nhóm? (Proxy vẫn còn)',no_accounts_yet:'Chưa có account. Bấm + Account để bắt đầu.',pull_image:'Pull / Update Image',register_open:'Mở link đăng ký trong tab mới',register_no_ref:'Ref link chưa cấu hình',no_ref:'Chưa có ref',select_all_page:'Chọn trang',select_all_filtered:'Chọn đã lọc',language:'Ngôn ngữ',custom_app_empty:'Chưa có app custom',ca_key_help:'Key (slug) *',ca_name_help:'Tên *',ca_icon_help:'Icon (emoji)',ca_desc:'Mô tả',ca_pay:'Trả thưởng',ca_color:'Màu',ca_limit:'Limit/acc',ca_fields_help:'Trường credentials',ca_no_fields:'Chưa có field',ca_cmd_help:'Docker cmd template *',ca_cmd_placeholders:'Placeholder: {name} {net} và field keys',ca_cmd_required_meta:'Phải có {name} và {net}',ca_delete_confirm:'Xoá custom app',ca_data_warn:'Account data sẽ bị xoá',copy_url:'Copy URL',no_proxies_yet:'Chưa có proxy',proxy_count_active:'hoạt động',proxy_count_total:'tổng',check_update:'Kiểm tra cập nhật',apps_btn:'Apps',device_label:'Tên thiết bị:',save_btn:'💾',start:'Bắt đầu',swap_proxy:'🔀 Proxy',log:'Log',deployed:'đã deploy',failed:'thất bại',stopped:'Đã dừng',restarted:'Đã restart',removed:'Đã xoá',containers_word:'container',accs_word:'tài khoản',proxies_word:'proxy',running_word:'chạy',not_pulled:'chưa pull',built:'build',pulled:'đã pull image'},
+  zh:{dashboard:'仪表盘',apps:'应用',accounts:'账户',proxies_active:'活动代理',containers:'容器',cpu_load:'CPU负载',memory:'内存',disk:'磁盘',settings:'设置',device_name:'设备名称',proxy_manager:'代理管理',add:'添加',import_:'导入',group:'分组',clear_all:'全部清除',filter_host:'过滤主机...',page:'页',filtered:'已过滤',clear_sel:'清除选择',selected:'已选',hint_shift:'按住 Shift 选择范围',custom_apps:'自定义 Docker 应用',add_custom:'+ 添加自定义应用',deploy:'部署',restart:'重启',stop:'停止',edit:'编辑',cancel:'取消',save:'保存',create:'创建',saved:'已保存',err:'错误',confirm_delete:'删除？',proxy_groups:'代理分组',new_group:'新建代理分组',edit_group:'编辑分组',group_name:'分组名称',proxies_in_group:'分组内代理',no_proxies:'暂无代理',no_groups:'暂无分组',register:'注册',from_group:'从分组',apply_add:'+ 添加',apply_only:'= 仅',apply_sub:'− 减去',no_group_selected:'未选择分组',pre_selected:'已预选',no_proxies_ticked:'未勾选代理',proxies_label:'代理',new_proxy:'新代理',edit_proxy:'编辑代理',import_proxies:'导入代理',one_per_line:'每行一个代理',create_group_optional:'为此批次创建分组（可选）',leave_empty_no_group:'留空表示不需要',group_hint:'命名后将自动分组',need_name:'需要名称',need_key:'需要 key',need_cmd:'需要 cmd 模板',saved_creds:'已保存凭据',no_credentials:'此应用无需凭据',earnapp_uuid_hint:'EarnApp 部署时自动生成 UUID',no_containers:'暂无容器，点击 ▶ 部署',deploy_account:'部署此账户',restart_account:'重启账户容器',stop_account:'停止账户容器',delete_containers:'删除账户所有容器（保留账户）',edit_account:'编辑代理/标签',delete_account:'删除账户',confirm_stop_acc:'停止该账户的所有容器？',confirm_delete_cts:'删除该账户的所有容器？',confirm_delete_group:'删除分组？（代理保留）',no_accounts_yet:'暂无账户，点击 + 账户',pull_image:'拉取/更新镜像',register_open:'在新标签页打开注册链接',register_no_ref:'此应用未配置 ref',no_ref:'无 ref',select_all_page:'选择本页',select_all_filtered:'选择过滤项',language:'语言',custom_app_empty:'暂无自定义应用',ca_key_help:'Key（标识）*',ca_name_help:'名称 *',ca_icon_help:'图标（emoji）',ca_desc:'描述',ca_pay:'支付',ca_color:'颜色',ca_limit:'限制/账户',ca_fields_help:'凭据字段',ca_no_fields:'无字段',ca_cmd_help:'Docker 命令模板 *',ca_cmd_placeholders:'占位符：{name} {net} 和字段 key',ca_cmd_required_meta:'必须包含 {name} 和 {net}',ca_delete_confirm:'删除自定义应用',ca_data_warn:'账户数据也将删除',copy_url:'复制 URL',no_proxies_yet:'暂无代理',proxy_count_active:'活动',proxy_count_total:'总计',check_update:'检查更新',apps_btn:'应用',device_label:'设备名称：',save_btn:'💾',start:'开始',swap_proxy:'🔀 代理',log:'日志',deployed:'已部署',failed:'失败',stopped:'已停止',restarted:'已重启',removed:'已删除',containers_word:'容器',accs_word:'账户',proxies_word:'代理',running_word:'运行中',not_pulled:'未拉取',built:'构建',pulled:'已拉取镜像'},
+  ru:{dashboard:'Панель',apps:'Приложения',accounts:'Аккаунты',proxies_active:'Активных прокси',containers:'Контейнеры',cpu_load:'Нагрузка CPU',memory:'Память',disk:'Диск',settings:'Настройки',device_name:'Имя устройства',proxy_manager:'Менеджер прокси',add:'Добавить',import_:'Импорт',group:'Группа',clear_all:'Очистить всё',filter_host:'Фильтр host...',page:'Стр.',filtered:'Отфильтровано',clear_sel:'Сбросить выбор',selected:'Выбрано',hint_shift:'Удерживайте Shift для выбора диапазона',custom_apps:'Свои Docker-приложения',add_custom:'+ Добавить приложение',deploy:'Развернуть',restart:'Перезапуск',stop:'Стоп',edit:'Изменить',cancel:'Отмена',save:'Сохранить',create:'Создать',saved:'Сохранено',err:'Ошибка',confirm_delete:'Удалить?',proxy_groups:'Группы прокси',new_group:'Новая группа',edit_group:'Изменить группу',group_name:'Имя группы',proxies_in_group:'Прокси в группе',no_proxies:'Нет прокси',no_groups:'Нет групп',register:'Регистрация',from_group:'Из группы',apply_add:'+ Добавить',apply_only:'= Только',apply_sub:'− Убрать',no_group_selected:'Группа не выбрана',pre_selected:'Предвыбрано',no_proxies_ticked:'Прокси не выбраны',proxies_label:'Прокси',new_proxy:'Новый прокси',edit_proxy:'Изменить прокси',import_proxies:'Импорт прокси',one_per_line:'Один прокси в строке',create_group_optional:'Создать группу для этой партии (опц.)',leave_empty_no_group:'Оставьте пустым, если не нужно',group_hint:'С именем — прокси импорта будут сгруппированы',need_name:'Нужно имя',need_key:'Нужен key',need_cmd:'Нужен cmd template',saved_creds:'Учётные данные сохранены',no_credentials:'Это приложение не требует учётных данных',earnapp_uuid_hint:'EarnApp авто-генерирует UUID при развёртывании',no_containers:'Нет контейнеров. Нажмите ▶ Развернуть',deploy_account:'Развернуть этот аккаунт',restart_account:'Перезапуск контейнеров аккаунта',stop_account:'Остановить контейнеры аккаунта',delete_containers:'Удалить все контейнеры аккаунта (аккаунт остаётся)',edit_account:'Изменить прокси/метку',delete_account:'Удалить аккаунт',confirm_stop_acc:'Остановить все контейнеры этого аккаунта?',confirm_delete_cts:'Удалить все контейнеры этого аккаунта?',confirm_delete_group:'Удалить группу? (прокси остаются)',no_accounts_yet:'Нет аккаунтов. Нажмите + Аккаунт',pull_image:'Загрузить/обновить образ',register_open:'Открыть ссылку регистрации в новой вкладке',register_no_ref:'Ref не настроен',no_ref:'Нет ref',select_all_page:'Выбрать страницу',select_all_filtered:'Выбрать отфильтрованные',language:'Язык',custom_app_empty:'Нет своих приложений',ca_key_help:'Key (слаг) *',ca_name_help:'Имя *',ca_icon_help:'Иконка (emoji)',ca_desc:'Описание',ca_pay:'Оплата',ca_color:'Цвет',ca_limit:'Лимит/акк',ca_fields_help:'Поля учётных данных',ca_no_fields:'Нет полей',ca_cmd_help:'Шаблон Docker cmd *',ca_cmd_placeholders:'Плейсхолдеры: {name} {net} и ключи полей',ca_cmd_required_meta:'Должно содержать {name} и {net}',ca_delete_confirm:'Удалить своё приложение',ca_data_warn:'Данные аккаунта тоже будут удалены',copy_url:'Копировать URL',no_proxies_yet:'Нет прокси',proxy_count_active:'активн.',proxy_count_total:'всего',check_update:'Проверить обновление',apps_btn:'Приложения',device_label:'Имя устройства:',save_btn:'💾',start:'Старт',swap_proxy:'🔀 Прокси',log:'Лог',deployed:'развёрнуто',failed:'не удалось',stopped:'Остановлено',restarted:'Перезапущено',removed:'Удалено',containers_word:'контейнеры',accs_word:'аккаунты',proxies_word:'прокси',running_word:'выполняются',not_pulled:'не загружен',built:'собран',pulled:'образ загружен'},
+  es:{dashboard:'Panel',apps:'Apps',accounts:'Cuentas',proxies_active:'Proxies activos',containers:'Contenedores',cpu_load:'CPU',memory:'Memoria',disk:'Disco',settings:'Ajustes',device_name:'Nombre del dispositivo',proxy_manager:'Gestor de Proxies',add:'Añadir',import_:'Importar',group:'Grupo',clear_all:'Borrar todo',filter_host:'Filtrar host...',page:'Página',filtered:'Filtrado',clear_sel:'Limpiar selección',selected:'Seleccionado',hint_shift:'Mantén Shift para seleccionar rango',custom_apps:'Apps Docker personalizadas',add_custom:'+ Añadir app',deploy:'Desplegar',restart:'Reiniciar',stop:'Detener',edit:'Editar',cancel:'Cancelar',save:'Guardar',create:'Crear',saved:'Guardado',err:'Error',confirm_delete:'¿Eliminar?',proxy_groups:'Grupos de Proxy',new_group:'Nuevo grupo',edit_group:'Editar grupo',group_name:'Nombre del grupo',proxies_in_group:'Proxies en grupo',no_proxies:'Sin proxies',no_groups:'Sin grupos',register:'Registro',from_group:'Desde grupo',apply_add:'+ Añadir',apply_only:'= Solo',apply_sub:'− Restar',no_group_selected:'Sin grupo seleccionado',pre_selected:'Pre-seleccionado',no_proxies_ticked:'Sin proxies marcados',proxies_label:'Proxies',new_proxy:'Nuevo Proxy',edit_proxy:'Editar Proxy',import_proxies:'Importar Proxies',one_per_line:'Un proxy por línea',create_group_optional:'Crear grupo para este lote (opcional)',leave_empty_no_group:'Dejar vacío si no necesita',group_hint:'Con nombre, los proxies importados se agruparán automáticamente',need_name:'Nombre requerido',need_key:'Key requerida',need_cmd:'Plantilla cmd requerida',saved_creds:'Credenciales guardadas',no_credentials:'Esta app no requiere credenciales',earnapp_uuid_hint:'EarnApp genera UUID al desplegar',no_containers:'Sin contenedores. Haga clic en ▶ Desplegar',deploy_account:'Desplegar esta cuenta',restart_account:'Reiniciar contenedores',stop_account:'Detener contenedores',delete_containers:'Eliminar todos los contenedores de la cuenta',edit_account:'Editar proxy/etiqueta',delete_account:'Eliminar cuenta',confirm_stop_acc:'¿Detener todos los contenedores de esta cuenta?',confirm_delete_cts:'¿Eliminar todos los contenedores de esta cuenta?',confirm_delete_group:'¿Eliminar grupo? (proxies se mantienen)',no_accounts_yet:'Sin cuentas. Haga clic en + Cuenta',pull_image:'Descargar/actualizar imagen',register_open:'Abrir enlace de registro en nueva pestaña',register_no_ref:'Ref no configurado',no_ref:'Sin ref',select_all_page:'Seleccionar página',select_all_filtered:'Seleccionar filtrados',language:'Idioma',custom_app_empty:'Sin apps personalizadas',ca_key_help:'Key (slug) *',ca_name_help:'Nombre *',ca_icon_help:'Icono (emoji)',ca_desc:'Descripción',ca_pay:'Pago',ca_color:'Color',ca_limit:'Límite/cuenta',ca_fields_help:'Campos de credenciales',ca_no_fields:'Sin campos',ca_cmd_help:'Plantilla cmd Docker *',ca_cmd_placeholders:'Placeholders: {name} {net} y claves de campo',ca_cmd_required_meta:'Debe contener {name} y {net}',ca_delete_confirm:'Eliminar app personalizada',ca_data_warn:'Los datos de cuenta también se eliminarán',copy_url:'Copiar URL',no_proxies_yet:'Sin proxies',proxy_count_active:'activos',proxy_count_total:'total',check_update:'Comprobar actualización',apps_btn:'Apps',device_label:'Nombre del dispositivo:',save_btn:'💾',start:'Iniciar',swap_proxy:'🔀 Proxy',log:'Log',deployed:'desplegado',failed:'fallido',stopped:'Detenido',restarted:'Reiniciado',removed:'Eliminado',containers_word:'contenedores',accs_word:'cuentas',proxies_word:'proxies',running_word:'en ejecución',not_pulled:'no descargado',built:'compilado',pulled:'imagen descargada'},
+  ar:{dashboard:'لوحة التحكم',apps:'التطبيقات',accounts:'الحسابات',proxies_active:'البروكسي النشط',containers:'الحاويات',cpu_load:'حمل المعالج',memory:'الذاكرة',disk:'القرص',settings:'الإعدادات',device_name:'اسم الجهاز',proxy_manager:'إدارة البروكسي',add:'إضافة',import_:'استيراد',group:'مجموعة',clear_all:'مسح الكل',filter_host:'تصفية المضيف...',page:'صفحة',filtered:'مفلتر',clear_sel:'إلغاء التحديد',selected:'محدد',hint_shift:'اضغط Shift للتحديد المتسلسل',custom_apps:'تطبيقات Docker مخصصة',add_custom:'+ إضافة تطبيق',deploy:'نشر',restart:'إعادة تشغيل',stop:'إيقاف',edit:'تحرير',cancel:'إلغاء',save:'حفظ',create:'إنشاء',saved:'تم الحفظ',err:'خطأ',confirm_delete:'حذف؟',proxy_groups:'مجموعات البروكسي',new_group:'مجموعة جديدة',edit_group:'تحرير المجموعة',group_name:'اسم المجموعة',proxies_in_group:'البروكسي في المجموعة',no_proxies:'لا يوجد بروكسي',no_groups:'لا توجد مجموعات',register:'تسجيل',from_group:'من المجموعة',apply_add:'+ إضافة',apply_only:'= فقط',apply_sub:'− طرح',no_group_selected:'لم يتم اختيار مجموعة',pre_selected:'محدد مسبقاً',no_proxies_ticked:'لم يتم تحديد بروكسي',proxies_label:'البروكسي',new_proxy:'بروكسي جديد',edit_proxy:'تحرير البروكسي',import_proxies:'استيراد البروكسي',one_per_line:'بروكسي واحد لكل سطر',create_group_optional:'إنشاء مجموعة لهذه الدفعة (اختياري)',leave_empty_no_group:'اتركه فارغاً إذا لم تحتج',group_hint:'إذا تم تسميتها، يتم تجميع البروكسي تلقائياً',need_name:'الاسم مطلوب',need_key:'المفتاح مطلوب',need_cmd:'قالب cmd مطلوب',saved_creds:'تم حفظ بيانات الاعتماد',no_credentials:'هذا التطبيق لا يحتاج بيانات اعتماد',earnapp_uuid_hint:'EarnApp يولد UUID تلقائياً عند النشر',no_containers:'لا توجد حاويات. اضغط ▶ نشر',deploy_account:'نشر هذا الحساب',restart_account:'إعادة تشغيل حاويات الحساب',stop_account:'إيقاف حاويات الحساب',delete_containers:'حذف جميع حاويات الحساب',edit_account:'تحرير البروكسي/التسمية',delete_account:'حذف الحساب',confirm_stop_acc:'إيقاف جميع حاويات هذا الحساب؟',confirm_delete_cts:'حذف جميع حاويات هذا الحساب؟',confirm_delete_group:'حذف المجموعة؟ (البروكسي يبقى)',no_accounts_yet:'لا توجد حسابات. اضغط + حساب',pull_image:'سحب/تحديث الصورة',register_open:'فتح رابط التسجيل في تبويب جديد',register_no_ref:'لم يتم تكوين Ref',no_ref:'لا يوجد ref',select_all_page:'تحديد الصفحة',select_all_filtered:'تحديد المفلتر',language:'اللغة',custom_app_empty:'لا توجد تطبيقات مخصصة',ca_key_help:'Key *',ca_name_help:'الاسم *',ca_icon_help:'الأيقونة',ca_desc:'الوصف',ca_pay:'الدفع',ca_color:'اللون',ca_limit:'حد/حساب',ca_fields_help:'حقول بيانات الاعتماد',ca_no_fields:'لا توجد حقول',ca_cmd_help:'قالب أمر Docker *',ca_cmd_placeholders:'العناصر النائبة: {name} {net} ومفاتيح الحقول',ca_cmd_required_meta:'يجب أن يحتوي على {name} و {net}',ca_delete_confirm:'حذف التطبيق المخصص',ca_data_warn:'سيتم حذف بيانات الحساب أيضاً',copy_url:'نسخ الرابط',no_proxies_yet:'لا يوجد بروكسي',proxy_count_active:'نشط',proxy_count_total:'الإجمالي',check_update:'فحص التحديث',apps_btn:'التطبيقات',device_label:'اسم الجهاز:',save_btn:'💾',start:'بدء',swap_proxy:'🔀 بروكسي',log:'سجل',deployed:'تم النشر',failed:'فشل',stopped:'متوقف',restarted:'تم إعادة التشغيل',removed:'تمت الإزالة',containers_word:'حاويات',accs_word:'حسابات',proxies_word:'بروكسي',running_word:'قيد التشغيل',not_pulled:'لم يتم السحب',built:'تم البناء',pulled:'تم سحب الصورة'},
+};
+let curLang=localStorage.getItem('ii-lang')||'en';
+function t(k){return (I18N[curLang]||{})[k]||I18N.en[k]||k}
+function applyI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n)});
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{el.placeholder=t(el.dataset.i18nPh)});
+  document.querySelectorAll('[data-i18n-title]').forEach(el=>{el.title=t(el.dataset.i18nTitle)});
+}
+function setLang(lang){
+  if(!I18N[lang])lang='en';
+  curLang=lang;localStorage.setItem('ii-lang',lang);
+  document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';
+  applyI18n();
+  // Re-render dynamic content
+  updateTop();loadApps();loadPx();loadPg();loadCa();loadSet();if(curApp)loadApp(curApp);
+  toast(LANGS[lang],'ok');
+}
+let devPage=1,devPer=20,devProxy='',devAcc='';
+let lastDevIdx=null;
+const pxSel=new Set();
+const $=s=>document.getElementById(s);
+
+// Theme
+function toggleTheme(){
+  const t=document.body.dataset.theme==='dark'?'light':'dark';
+  document.body.dataset.theme=t;$('theme-toggle').textContent=t==='dark'?'☀️':'🌙';
+  localStorage.setItem('ii-theme',t);
+}
+(()=>{const t=localStorage.getItem('ii-theme');if(t){document.body.dataset.theme=t;$('theme-toggle').textContent=t==='dark'?'☀️':'🌙'}})();
+// Init lang selector
+(()=>{
+  const sel=$('lang-sel');
+  Object.entries(LANGS).forEach(([code,name])=>{
+    const o=document.createElement('option');o.value=code;o.textContent=name;
+    if(code===curLang)o.selected=true;sel.appendChild(o);
+  });
+  document.documentElement.lang=curLang;
+  document.documentElement.dir=curLang==='ar'?'rtl':'ltr';
+})();
+
+function toast(m,t='if'){const e=document.createElement('div');e.className='toast '+t;e.textContent=m;$('tc').appendChild(e);setTimeout(()=>e.remove(),3000)}
+function showMo(h,wide=false){$('moc').className='mo '+(wide?'wide':'');$('moc').innerHTML=h;$('mo-bg').classList.add('show')}
+function hideMo(){$('mo-bg').classList.remove('show')}
+$('mo-bg').onclick=e=>{if(e.target===e.currentTarget)hideMo()};
+
+// ====== Self-update ======
+let upd={available:false,server:null,current:null};
+async function checkUpdate(silent=true){
+  if(!silent)toast('Checking update…','if');
+  const r=await fetch('/api/update/check').then(x=>x.json()).catch(()=>null);
+  if(!r||!r.ok){if(!silent)toast('Update check failed: '+(r?.error||''),'er');return}
+  upd={available:!!r.available,server:r.server||{},current:r.current||{}};
+  const btn=document.getElementById('upd-btn');
+  if(btn){
+    if(upd.available){
+      btn.style.display='inline-flex';
+      btn.title=`v${upd.server.version} build ${upd.server.build} available (current: v${upd.current.version} build ${upd.current.build})`;
+    }else{
+      btn.style.display='none';
+    }
+  }
+  // If user clicked the manual button, always show the modal so they can see status + notes
+  if(!silent)openUpdateModal();
+}
+function openUpdateModal(){
+  const s=upd.server||{},c=upd.current||{};
+  const notes=(s.notes||'').replace(/[<>]/g,'');
+  const avail=!!upd.available;
+  showMo(`
+    <h3 style="margin:0 0 14px;display:flex;align-items:center;gap:8px">
+      <span style="font-size:22px">${avail?'🚀':'✅'}</span> ${avail?'Client Update Available':'You are up to date'}
+    </h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div style="background:var(--bg3);padding:10px 12px;border-radius:8px">
+        <div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em">Current</div>
+        <div style="font-family:var(--mono);font-size:15px;margin-top:4px">v${c.version||'-'} <span style="opacity:.6;font-size:12px">build ${c.build||'?'}</span></div>
+      </div>
+      <div style="background:${avail?'linear-gradient(135deg,rgba(16,185,129,.15),rgba(5,150,105,.15))':'var(--bg3)'};border:1px solid ${avail?'rgba(16,185,129,.3)':'var(--border)'};padding:10px 12px;border-radius:8px">
+        <div style="font-size:10px;color:${avail?'#10b981':'var(--t3)'};text-transform:uppercase;letter-spacing:.05em">${avail?'Available':'Server'}</div>
+        <div style="font-family:var(--mono);font-size:15px;margin-top:4px;color:${avail?'#10b981':'var(--t1)'}">v${s.version||'-'} <span style="opacity:.7;font-size:12px">build ${s.build||'?'}</span></div>
+      </div>
+    </div>
+    ${notes?`<div style="background:var(--bg3);border-left:3px solid var(--accent);padding:10px 14px;border-radius:6px;margin-bottom:14px;font-size:12px;line-height:1.55;white-space:pre-wrap;color:var(--t1)">${notes}</div>`:''}
+    ${avail?`<div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);padding:10px 12px;border-radius:7px;margin-bottom:14px;font-size:11.5px;color:var(--t2);line-height:1.55">
+      <b style="color:#f59e0b">⚠ Note:</b> The service will restart after applying. Active deployments may pause for a few seconds. Data (proxies, accounts, config) is kept.
+    </div>`:''}
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="hideMo()">${avail?'Cancel':'Close'}</button>
+      ${avail?`<button class="btn pri" id="upd-apply-btn" onclick="applyUpdate()" style="background:linear-gradient(135deg,#10b981,#059669);border:none;color:#fff">⬇ Apply Update</button>`:''}
+    </div>
+  `);
+}
+async function applyUpdate(){
+  const b=document.getElementById('upd-apply-btn');
+  if(!b)return;
+  b.disabled=true;b.innerHTML='<span style="display:inline-block;animation:spin 1s linear infinite">⟳</span> Downloading...';
+  const r=await fetch('/api/update/apply',{method:'POST'}).then(x=>x.json()).catch(()=>null);
+  if(!r||!r.ok){
+    b.disabled=false;b.innerHTML='⬇ Apply Update';
+    toast(r?.error||'Update failed','er');
+    return;
+  }
+  b.innerHTML='✓ Applied · restarting...';
+  toast('Update applied. Service is restarting…','ok');
+  // Wait ~6s then reload page
+  let waited=0;
+  const tick=setInterval(async()=>{
+    waited+=1500;
+    const ok=await fetch('/api/system/stats').then(x=>x.ok).catch(()=>false);
+    if(ok){clearInterval(tick);hideMo();location.reload()}
+    else if(waited>30000){clearInterval(tick);toast('Service did not come back. Try refreshing manually.','er')}
+  },1500);
+}
+// Inject spinner keyframes once
+(function(){const s=document.createElement('style');s.textContent='@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}';document.head.appendChild(s);})();
+// Initial check + periodic re-check every 30 minutes
+setTimeout(()=>checkUpdate(true),3000);
+setInterval(()=>checkUpdate(true),30*60*1000);
+
+// ====== License / Upgrade ======
+let lic={tier:{tier:'trial',name:'Free Trial'},usage:{containers:0,proxies:0}};
+let cfgCache={};
+let pricingCache=null;
+function _countdown(expiresAt){
+  if(!expiresAt)return {label:'Lifetime ∞',cls:'ok',pct:100};
+  const ms=new Date(expiresAt)-new Date();
+  if(ms<=0)return {label:'Expired',cls:'er',pct:0};
+  const d=Math.floor(ms/86400000),h=Math.floor((ms%86400000)/3600000),m=Math.floor((ms%3600000)/60000);
+  let label;
+  if(d>=1)label=`${d}d ${h}h`;
+  else if(h>=1)label=`${h}h ${m}m`;
+  else label=`${m}m`;
+  const cls=d<3?'er':d<7?'wn':'ok';
+  // Assume month plan ≈ 31 days for progress bar
+  const pct=Math.max(0,Math.min(100,(ms/(31*86400000))*100));
+  return {label,cls,pct};
+}
+async function refreshLicense(){
+  // Pull settings (for device_id) once, then license
+  if(!cfgCache.client_id){
+    const s=await fetch('/api/settings').then(x=>x.json()).catch(()=>null);
+    if(s)cfgCache=s;
+  }
+  const r=await fetch('/api/license').then(x=>x.json()).catch(()=>null);
+  if(!r)return;
+  lic=r;
+  // -- Topbar chip --
+  const c=document.getElementById('tier-chip');
+  const n=document.getElementById('tier-name');
+  if(c&&n){
+    c.classList.remove('trial','basic','pro');
+    c.classList.add(lic.tier.tier||'trial');
+    const t=lic.tier;
+    const cap=t.max_containers_per_app||20;
+    const perApp=lic.usage.per_app||{};
+    const peak=Object.values(perApp).length?Math.max(...Object.values(perApp)):0;
+    let label=(t.name||'Trial');
+    if((t.tier||'trial')==='pro')label='Pro ∞';
+    else label+=` ${peak}/${cap}/app`;
+    n.textContent=label;
+  }
+  // -- Dashboard license card --
+  renderLicenseCard();
+}
+function renderLicenseCard(){
+  const root=document.getElementById('dash-lic-section');
+  if(!root)return;
+  const t=lic.tier||{};
+  const cid=cfgCache.client_id||'-';
+  const dev=cfgCache.device_name||'-';
+  const cd=_countdown(t.expires_at);
+  const tierColors={trial:'#6b7280',basic:'#3b82f6',pro:'#a855f7'};
+  const tcolor=tierColors[t.tier]||'#6b7280';
+  const cap=t.max_containers_per_app||20;
+  const perApp=lic.usage.per_app||{};
+  const apps=Object.keys(perApp).sort();
+  const isPro=(t.tier||'trial')==='pro';
+  const usageHtml=isPro
+    ? `<div class="lic-usg">Unlimited containers · ${lic.usage.proxies} proxies</div>`
+    : `<div class="lic-usg">Limit: <b>${cap}</b> containers / app · Proxies: ${lic.usage.proxies}
+        ${apps.length?`<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">${apps.map(k=>{
+          const n=perApp[k]||0;
+          const over=n>cap;
+          const near=!over&&n>=cap*0.8;
+          const col=over?'#ef4444':near?'#f59e0b':'#10b981';
+          return `<span style="background:rgba(255,255,255,.04);border:1px solid ${col}55;color:${col};padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600">${k} ${n}/${cap}</span>`;
+        }).join('')}</div>`:''}
+      </div>`;
+  const cdHtml=t.expires_at
+    ? `<div class="lic-cd ${cd.cls}"><span class="lic-cd-label">⏳ ${cd.label} left</span><div class="lic-cd-bar"><div class="lic-cd-fill" style="width:${cd.pct}%;background:${cd.cls==='er'?'#ef4444':cd.cls==='wn'?'#f59e0b':'#10b981'}"></div></div></div>`
+    : `<div class="lic-cd ok"><span class="lic-cd-label">♾ Lifetime — no expiry</span></div>`;
+  root.innerHTML=`
+    <div class="sec-title">💎 <span>License & Device</span></div>
+    <div class="lic-card">
+      <div class="lic-grid">
+        <div class="lic-cell">
+          <div class="lic-l">Device ID</div>
+          <div class="lic-v mono" onclick="copyText('${cid}','Device ID copied')" title="Click to copy">${cid}</div>
+        </div>
+        <div class="lic-cell">
+          <div class="lic-l">Device Name</div>
+          <div class="lic-v">${dev}</div>
+        </div>
+        <div class="lic-cell">
+          <div class="lic-l">License Tier</div>
+          <div class="lic-v"><span class="tier-pill" style="background:${tcolor}">${t.name||'Trial'}</span> ${t.tier==='trial'?'(Free)':''}</div>
+        </div>
+        <div class="lic-cell">
+          <div class="lic-l">Plan</div>
+          <div class="lic-v">${t.expires_at?'Monthly':'Lifetime / Free'}</div>
+        </div>
+      </div>
+      ${cdHtml}
+      ${usageHtml}
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
+        <button class="btn btn-sm" onclick="refreshLicenseNow()">🔄 Refresh</button>
+        <button class="btn btn-sm pri" onclick="openUpgrade()" style="background:linear-gradient(135deg,${tcolor},${tcolor}aa);border:none;color:#fff">💎 ${t.tier==='pro'?'Manage':'Upgrade'}</button>
+      </div>
+    </div>`;
+}
+function copyText(s,m){
+  if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(s).then(()=>toast(m||'Copied','ok'))}
+  else{const ta=document.createElement('textarea');ta.value=s;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast(m||'Copied','ok')}catch{};document.body.removeChild(ta)}
+}
+// Update countdown every minute (no API call — just re-render)
+setInterval(()=>renderLicenseCard(),60*1000);
+async function getPricing(){
+  if(pricingCache)return pricingCache;
+  const r=await fetch('/api/license/pricing').then(x=>x.json()).catch(()=>null);
+  pricingCache=r&&r.ok?r:null;
+  return pricingCache;
+}
+async function openUpgrade(){
+  await refreshLicense();
+  const [p,history]=await Promise.all([
+    getPricing(),
+    fetch('/api/license/payments').then(x=>x.json()).catch(()=>null),
+  ]);
+  if(!p){toast('Pricing unavailable — control server unreachable','er');return}
+  const cur=lic.tier;
+  const payments=(history?.payments)||[];
+  const active=payments.find(x=>x.status==='pending');
+  const lastApproved=payments.find(x=>x.status==='approved');
+  const tierColors={trial:'#6b7280',basic:'#3b82f6',pro:'#a855f7'};
+  const stColors={pending:'#f59e0b',approved:'#10b981',rejected:'#ef4444'};
+  function _fmt(d){try{return new Date(d).toLocaleString()}catch{return d||'-'}}
+  showMo(`
+    <h3 style="margin:0 0 14px;display:flex;align-items:center;gap:8px"><span style="font-size:22px">💎</span> License & Plans</h3>
+    <div style="background:var(--bg3);padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <div><span style="color:var(--t3)">Current tier:</span> <b style="color:${cur.color||'#fff'};text-transform:uppercase">${cur.name}</b></div>
+      <div><span style="color:var(--t3)">Per-app cap:</span> <b>${(cur.max_containers_per_app||20)>=999999?'∞':cur.max_containers_per_app}</b> containers</div>
+      <div><span style="color:var(--t3)">Total containers:</span> <b>${lic.usage.containers}</b></div>
+      <div><span style="color:var(--t3)">Proxies:</span> <b>${lic.usage.proxies}</b></div>
+      ${cur.expires_at?`<div><span style="color:var(--t3)">Expires:</span> <b>${new Date(cur.expires_at).toLocaleDateString()}</b></div>`:''}
+    </div>
+    ${active?`
+    <div onclick="resumeWatching('${active.id}','${active.tier}','${active.plan_type}')" style="cursor:pointer;background:linear-gradient(135deg,rgba(245,158,11,.15),rgba(245,158,11,.05));border:1px solid rgba(245,158,11,.4);border-radius:8px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:12px">
+      <div style="font-size:22px;animation:spin 1.4s linear infinite">⟳</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;color:#fbbf24;font-weight:700">Payment in progress · ${esc(active.tier)} · ${esc(active.plan_type)} · ${active.amount} USDT</div>
+        <div style="font-size:11px;color:var(--t2);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(active.verify_msg||'Watching blockchain…')}</div>
+      </div>
+      <div style="font-size:11px;color:#fbbf24;font-weight:600">▸ Review</div>
+    </div>`:''}
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+      ${Object.entries(p.tiers).map(([k,t])=>{
+        const isActive=k===cur.tier;
+        return `<div style="border:2px solid ${t.color};border-radius:10px;padding:14px;background:${isActive?`linear-gradient(135deg,${t.color}22,${t.color}11)`:'var(--bg3)'};position:relative">
+          ${isActive?`<div style="position:absolute;top:8px;right:8px;background:${t.color};color:#fff;font-size:9px;padding:2px 7px;border-radius:10px;text-transform:uppercase;font-weight:700">Active</div>`:''}
+          <div style="font-size:11px;color:${t.color};font-weight:800;text-transform:uppercase;letter-spacing:.06em">${t.name}</div>
+          <div style="margin-top:10px;font-size:11px;color:var(--t2);line-height:1.6">
+            ${(t.max_containers_per_app||20)<999999?`📦 <b>${t.max_containers_per_app}</b> containers / app`:'📦 Unlimited containers'}<br>
+            🌐 Proxies<br>
+            🔧 All apps · No watermark
+          </div>
+          ${k==='trial'?`<div style="margin-top:10px;font-size:18px;font-weight:800">Free</div>`:`
+          <div style="margin-top:10px;display:flex;flex-direction:column;gap:4px">
+            <button class="btn" onclick="startPayment('${k}','monthly')" style="background:${t.color};border:none;color:#fff;font-weight:700;justify-content:space-between">Monthly <span>${t.price_monthly} USDT</span></button>
+            <button class="btn" onclick="startPayment('${k}','lifetime')" style="background:${t.color};border:none;color:#fff;font-weight:700;justify-content:space-between;opacity:.85">Lifetime <span>${t.price_lifetime} USDT</span></button>
+          </div>`}
+        </div>`;
+      }).join('')}
+    </div>
+    ${payments.length?`
+    <div style="margin-bottom:14px">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--t3);margin-bottom:6px">Payment history</div>
+      <div style="background:var(--bg3);border-radius:8px;overflow:hidden">
+        ${payments.slice(0,5).map(x=>{
+          const tc=tierColors[x.tier]||'#6b7280';
+          const sc=stColors[x.status]||'#6b7280';
+          const isPending=x.status==='pending';
+          return `<div ${isPending?`onclick="resumeWatching('${x.id}','${x.tier}','${x.plan_type}')" style="cursor:pointer"`:''} class="lic-pay-row" style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--border);font-size:11.5px${isPending?';background:rgba(245,158,11,.04)':''}">
+            <span style="font-family:var(--mono);color:var(--t3);font-size:10px;min-width:120px">${_fmt(x.submitted_at)}</span>
+            <span style="background:${tc};color:#fff;padding:1px 7px;border-radius:9px;font-size:9px;text-transform:uppercase;font-weight:700">${esc(x.tier)}</span>
+            <span style="color:var(--t2);font-size:11px">${esc(x.plan_type)}</span>
+            <span style="font-family:var(--mono);color:var(--t1);font-weight:600">${x.amount} USDT</span>
+            <span style="flex:1;font-size:10px;color:var(--t3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(x.verify_msg||'')}">${esc((x.verify_msg||'').slice(0,55))}</span>
+            <span style="background:${sc};color:#fff;padding:1px 7px;border-radius:9px;font-size:9px;text-transform:uppercase;font-weight:700">${esc(x.status)}</span>
+            ${x.approval_source==='auto'||x.approval_source==='auto-scanner'?'<span style="background:#10b981;color:#fff;padding:1px 5px;border-radius:8px;font-size:8px;font-weight:700">AUTO</span>':''}
+            ${isPending?'<span style="color:#fbbf24;font-size:10px;font-weight:700">▸</span>':''}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`:''}
+    <div style="display:flex;justify-content:flex-end;margin-top:14px"><button class="btn" onclick="hideMo()">Close</button></div>
+  `,true);
+}
+
+// Re-open the "Pay" modal with existing watching state when user clicks a pending payment
+async function resumeWatching(pid,tier,planType){
+  // Re-uses the existing startPayment flow — server's /api/license/quote is idempotent for
+  // (client,tier,plan), so calling it again returns the same address + same payment_id.
+  startPayment(tier,planType);
+}
+
+async function startPayment(tier,planType){
+  // Step 1: ask server for a unique deposit address (1 per client+tier+plan).
+  showMo(`<div style="text-align:center;padding:30px"><div style="font-size:24px;animation:spin 1s linear infinite">⟳</div><div style="margin-top:10px;color:var(--t2)">Creating your private deposit address…</div></div>`);
+  const q=await fetch('/api/license/quote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tier,plan_type:planType})}).then(x=>x.json()).catch(()=>null);
+  if(!q||!q.ok){toast(q?.error||'Failed to get deposit address','er');hideMo();return}
+  const p=await getPricing();
+  const tcfg=p.tiers[tier];
+  const amount=q.amount;
+  const addr=q.deposit_address;
+  const pid=q.payment_id;
+  const qr=`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(`solana:${addr}?amount=${amount}&spl-token=Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB`)}`;
+  showMo(`
+    <h3 style="margin:0 0 14px;display:flex;align-items:center;gap:8px">💳 Pay ${tcfg.name} · ${planType}</h3>
+    <div style="display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;margin-bottom:14px">
+      <img src="${qr}" style="border-radius:8px;background:#fff;padding:6px;width:180px;height:180px">
+      <div style="font-size:12px;line-height:1.7;min-width:0">
+        <div style="color:var(--t3);font-size:10px;text-transform:uppercase">Amount</div>
+        <div style="font-size:26px;font-weight:800;color:${tcfg.color};margin:2px 0 10px">${amount} USDT</div>
+        <div style="color:var(--t3);font-size:10px;text-transform:uppercase">Network</div>
+        <div style="margin-bottom:8px">Solana (SPL)</div>
+        <div style="color:var(--t3);font-size:10px;text-transform:uppercase">Your unique address (click to copy)</div>
+        <div onclick="copyAddr('${addr}')" style="font-family:var(--mono);font-size:11px;background:var(--bg3);padding:8px 10px;border-radius:6px;word-break:break-all;cursor:pointer;border:1px dashed var(--border);color:var(--accent)">${addr}</div>
+      </div>
+    </div>
+    <div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);padding:10px 12px;border-radius:7px;margin-bottom:12px;font-size:11.5px;color:var(--t2);line-height:1.55">
+      <b style="color:#10b981">✨ Fully automatic.</b> Send ≥ ${amount} USDT on Solana to the address above. Server scans on-chain every ~45s — license activates automatically when deposit lands.
+    </div>
+    <div id="qpay-status" style="margin-bottom:12px;padding:10px;background:var(--bg3);border-radius:6px;display:flex;align-items:center;gap:8px;font-size:12px">
+      <span style="display:inline-block;animation:spin 1.2s linear infinite">⟳</span>
+      <span>Watching blockchain for your payment…</span>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="openUpgrade()">← Back</button>
+      <button class="btn pri" onclick="hideMo()">Close (keep watching)</button>
+    </div>
+  `,true);
+  // Begin polling for activation — server detects deposit on its own; we just listen.
+  const stopAt=Date.now()+30*60*1000;  // 30 min observation
+  async function pollQuote(){
+    if(!document.getElementById('qpay-status'))return;
+    const s=await fetch('/api/license/payment/'+pid).then(x=>x.json()).catch(()=>null);
+    const pp=s?.payment;
+    if(pp){
+      const el=document.getElementById('qpay-status');
+      if(pp.status==='approved'){
+        el.innerHTML='<span style="color:#10b981">✓</span> <b style="color:#10b981">Deposit detected!</b> ' + (pp.verify_msg||'') + ' · Activating license…';
+        toast('License activated ✓','ok');
+        setTimeout(()=>{refreshLicenseNow();hideMo()},1800);
+        return;
+      }
+      if(pp.verify_status==='watching'){el.innerHTML='<span style="display:inline-block;animation:spin 1.2s linear infinite">⟳</span> Watching '+pp.deposit_address?.slice(0,12)+'…'+(pp.deposit_address?.slice(-6)||'')+' (poll every ~45s)';}
+      else if(pp.verify_msg){el.innerHTML='<span style="display:inline-block;animation:spin 1.2s linear infinite">⟳</span> '+pp.verify_msg;}
+    }
+    if(Date.now()<stopAt)setTimeout(pollQuote,5000);
+  }
+  setTimeout(pollQuote,4000);
+}
+function copyAddr(a){
+  if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(a).then(()=>toast('Address copied','ok'))}
+  else{const ta=document.createElement('textarea');ta.value=a;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('Address copied','ok')}catch{};document.body.removeChild(ta)}
+}
+async function submitPayment(tier,planType){
+  const txid=document.getElementById('pay-txid').value.trim();
+  const note=document.getElementById('pay-note').value.trim();
+  if(!txid||txid.length<10){toast('Please paste a valid TXID','er');return}
+  const b=document.getElementById('pay-submit-btn');
+  b.disabled=true;b.textContent='Submitting…';
+  const r=await fetch('/api/license/pay',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tier,plan_type:planType,txid,note})}).then(x=>x.json()).catch(()=>null);
+  if(!r||!r.ok){
+    b.disabled=false;b.textContent='Submit TXID';
+    toast(r?.error||'Submission failed','er');return;
+  }
+  const pid=r.payment_id;
+  showMo(`
+    <h3 style="margin:0 0 14px">✅ Submitted · Auto-verifying</h3>
+    <div style="background:var(--bg3);padding:14px;border-radius:8px;font-size:12px;line-height:1.7;margin-bottom:14px">
+      <div>Payment ID: <span style="font-family:var(--mono);color:var(--accent)">${pid}</span></div>
+      <div id="verify-line" style="margin-top:10px;display:flex;align-items:center;gap:8px;color:var(--t2)">
+        <span id="verify-icon" style="display:inline-block;animation:spin 1s linear infinite">⟳</span>
+        <span id="verify-msg">Querying Solana blockchain…</span>
+      </div>
+      <div style="color:var(--t3);margin-top:8px;font-size:11px">Server checks Solana every minute for up to 24h. License activates automatically when TX confirms — no admin action needed for valid payments.</div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" id="verify-now-btn" onclick="triggerVerifyNow('${pid}')">⚡ Verify now</button>
+      <button class="btn pri" onclick="hideMo()">Close</button>
+    </div>
+  `);
+  const stopAt=Date.now()+5*60*1000;
+  async function poll(){
+    if(!document.getElementById('verify-line'))return;
+    const s=await fetch('/api/license/payment/'+pid).then(x=>x.json()).catch(()=>null);
+    const p=s?.payment;
+    if(p){
+      updateVerifyLine(p);
+      if(p.status==='approved'){
+        toast('License activated automatically ✓','ok');
+        setTimeout(()=>{refreshLicenseNow();hideMo()},1500);
+        return;
+      }
+      if(p.status==='rejected')return;
+    }
+    if(Date.now()<stopAt)setTimeout(poll,4000);
+  }
+  setTimeout(poll,3000);
+}
+function updateVerifyLine(p){
+  const icon=document.getElementById('verify-icon');
+  const msg=document.getElementById('verify-msg');
+  const line=document.getElementById('verify-line');
+  if(!icon||!msg||!line)return;
+  const v=p.verify_status||'queued';
+  if(v==='queued'){icon.textContent='⟳';icon.style.animation='spin 1s linear infinite';msg.textContent='Queued for verification…';line.style.color='var(--t2)';}
+  else if(v==='pending'){icon.textContent='⟳';icon.style.animation='spin 1s linear infinite';msg.innerHTML='Waiting for TX confirmation · <span style="opacity:.75">'+(p.verify_msg||'')+'</span>';line.style.color='#f59e0b';}
+  else if(v==='ok'){icon.textContent='✓';icon.style.animation='none';line.style.color='#10b981';msg.innerHTML='<b>Verified on-chain!</b> '+(p.verify_msg||'')+' — activating…';}
+  else if(v==='fail'){icon.textContent='✗';icon.style.animation='none';line.style.color='#ef4444';msg.innerHTML='<b>Verification failed:</b> '+(p.verify_msg||'Unknown')+' (admin can still approve manually)';}
+  else if(v==='skipped'){icon.textContent='⏸';icon.style.animation='none';line.style.color='var(--t3)';msg.textContent='Auto-verify off — admin will approve manually';}
+}
+async function triggerVerifyNow(pid){
+  const b=document.getElementById('verify-now-btn');
+  if(!b)return;
+  b.disabled=true;b.textContent='Verifying…';
+  await fetch('/api/license/payment/'+pid+'/verify-now',{method:'POST'}).catch(()=>{});
+  setTimeout(async()=>{
+    const s=await fetch('/api/license/payment/'+pid).then(x=>x.json()).catch(()=>null);
+    if(s?.payment){
+      updateVerifyLine(s.payment);
+      if(s.payment.status==='approved'){toast('License activated ✓','ok');refreshLicenseNow();hideMo();return;}
+    }
+    if(document.getElementById('verify-now-btn')){b.disabled=false;b.textContent='⚡ Verify now';}
+  },3000);
+}
+async function refreshLicenseNow(){
+  const r=await fetch('/api/license/refresh',{method:'POST'}).then(x=>x.json()).catch(()=>null);
+  await refreshLicense();
+  if(r?.ok){
+    const t=r.tier?.tier||'trial';
+    if(t!=='trial'){toast(`License activated · ${r.tier.name}`,'ok');hideMo()}
+    else toast('Not activated yet — try again in a few minutes','if');
+  }else toast(r?.error||'Refresh failed','er');
+}
+// Initial load + 5min poll
+setTimeout(refreshLicense,1500);
+setInterval(refreshLicense,5*60*1000);
+async function api(u,o={}){
+  try{
+    if(o.body&&typeof o.body==='object'){o.headers={'Content-Type':'application/json'};o.body=JSON.stringify(o.body)}
+    const r=await fetch(u,o);const t=await r.text();
+    let data=null;try{data=JSON.parse(t)}catch{return null}
+    // Server tells us a license tier limit was hit → toast + auto-open Upgrade modal
+    if(data&&data.license_blocked){
+      toast(data.error||'License limit reached','er');
+      try{openUpgrade()}catch(e){}
+    }
+    return data;
+  }catch(e){
+    // Only toast on user-initiated mutations. Background polls fail silently to avoid noise.
+    if(o.method && o.method!=='GET')toast('Network: '+e.message,'er');
+    return null;
+  }
+}
+
+function showPage(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(x=>x.classList.remove('active'));
+  if(p==='dashboard'){$('pg-dashboard').classList.add('active');document.querySelector('[data-page="dashboard"]').classList.add('active');curApp=null}
+  else{$('pg-app').classList.add('active');const el=document.querySelector(`[data-app="${p}"]`);if(el)el.classList.add('active');curApp=p;loadApp(p)}
+  document.getElementById('sidebar').classList.remove('open');
+}
+
+function clamp(n,min,max){return Math.max(min,Math.min(max,n))}
+function togglePxSel(id,on){if(on)pxSel.add(id);else pxSel.delete(id);updPxBD()}
+
+// ====== TOPBAR ======
+async function updateTop(){
+  const d=await api('/api/status');if(!d||d.error)return;
+  const s=d.stats||{};
+  $('tb-up').textContent=s.uptime||'--';
+  $('tb-cpu').textContent=(s.cpu||'--')+'%';
+  $('tb-ram').textContent=(s.mem_pct||'--')+'%';
+  $('tb-disk').textContent=s.disk_pct||s.disk||'--';
+  $('tb-temp').textContent=s.temp?s.temp+'°C':'--';
+  $('tb-ct').textContent=(s.ct_run||0)+'/'+(s.ct_tot||0);
+  $('tb-dot').className='dot '+(d.docker?'':'off');
+  $('tb-st').textContent=d.docker?'Online':'Offline';
+  $('dash-stats').innerHTML=`
+    <div class="stat"><div class="label">${t('accounts')}</div><div class="value" style="color:var(--accent)">${d.accs||0}</div></div>
+    <div class="stat"><div class="label">${t('proxies_active')}</div><div class="value" style="color:var(--cyan)">${d.px_on||0} / ${d.px||0}</div></div>
+    <div class="stat"><div class="label">${t('containers')}</div><div class="value" style="color:var(--green)">${s.ct_run||0} / ${s.ct_tot||0}</div></div>
+    <div class="stat"><div class="label">${t('cpu_load')}</div><div class="value">${s.cpu||'--'}</div></div>
+    <div class="stat"><div class="label">${t('memory')}</div><div class="value">${s.mem_used&&s.mem_total?`${(s.mem_used/1024).toFixed(1)}/${(s.mem_total/1024).toFixed(0)}G <span style="font-size:13px;color:var(--t3);font-weight:500">(${s.mem_pct}%)</span>`:(s.mem_pct||'--')+'%'}</div></div>
+    <div class="stat"><div class="label">${t('disk')}</div><div class="value">${s.disk||'--'}</div></div>`;
+}
+
+// ====== SIDEBAR ======
+async function loadApps(){
+  const r=await api('/api/apps');apps=r&&!r.error?r:[];
+  proxies=await api('/api/proxies')||[];
+  $('sb-apps').innerHTML=apps.filter(a=>!a.hidden).map(a=>`
+    <div class="sb-item ${curApp===a.key?'active':''}" data-app="${a.key}" data-page="${a.key}" onclick="showPage('${a.key}')">
+      <span class="icon">${a.icon}</span><span class="name">${a.name}</span>
+      ${a.run?`<span class="badge on">${a.run}</span>`:(a.tot?`<span class="badge off">${a.tot}</span>`:'')}
+    </div>`).join('');
+  $('px-cnt').textContent=`${proxies.filter(p=>p.enabled!==false).length} ${t('proxy_count_active')} / ${proxies.length} ${t('proxy_count_total')}`;
+  if(curApp)loadApp(curApp);
+}
+
+// ====== APP DETAIL ======
+async function loadApp(k){
+  const d=await api(`/api/apps/${k}/detail`);if(!d||d.error)return;
+  const def=d.d,accs=d.accounts,cts=d.containers;
+  const appDef=apps.find(a=>a.key===k)||{};
+  const run=cts.filter(c=>c.running).length;
+  // Fetch image/ref info async, render as chips next to name
+  api(`/api/apps/${k}/info`).then(info=>{
+    if(!info||info.error)return;const m=$('app-meta');if(!m)return;
+    const img=info.docker||{};
+    const imgName=esc((img.image||'').split('/').pop()||'-');
+    const imgChip=img.pulled
+      ?`<span class="app-chip ok" title="${esc(img.image||'')}${img.created?' · built '+img.created.slice(0,10):''}">🐳 <b>${imgName}</b></span>`
+      :`<span class="app-chip warn" title="Image not pulled locally">🐳 <b>${t('not_pulled')}</b> ${img.image?'· '+esc(img.image):''}</span>`;
+    const refChip=`<a class="app-chip link" href="${esc(info.ref_url||'#')}" target="_blank" rel="noopener" title="${t('register_open')}">🔗 <b>${t('register')}</b></a>`;
+    const accChip=`<span class="app-chip">👤 <b>${info.accounts||0}</b> ${t('accs_word')}</span>`;
+    const devChip=`<span class="app-chip">📱 <b>${info.running||0}/${info.devices||0}</b> ${t('running_word')}</span>`;
+    m.innerHTML=imgChip+refChip+accChip+devChip;
+  });
+  // Build filters
+  const proxySet=[...new Set(cts.map(c=>c.proxy_url||'direct'))].sort();
+  const accSet=accs.map(a=>({id:a.id,label:a.label})).sort((a,b)=>a.label.localeCompare(b.label));
+  if(!proxySet.includes(devProxy))devProxy='';
+  if(devAcc && !accSet.some(x=>x.id===devAcc))devAcc='';
+
+  $('pg-app').innerHTML=`
+    <div class="app-hdr">
+      <div class="app-icon" style="background:${def.color}18">${appDef.icon||'📱'}</div>
+      <div style="flex:1;min-width:0">
+        <h2>${def.name} <span style="font-size:12px;color:var(--t2);font-weight:500;margin-left:6px">${def.desc} · ${def.pay}${def.limit>0?` · ⚡ Max ${def.limit}/acc`:''}</span></h2>
+        <div id="app-meta" class="app-chips"><span class="app-chip">⏳ loading...</span></div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-sm" onclick="appInfo('${k}')" title="Image / Ref link details">ℹ More</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="sec-title">👤 Accounts <span class="count">${accs.length} · ${run}/${cts.length} containers running</span>
+        <button class="btn btn-accent btn-sm" onclick="addAccMo('${k}')" style="margin-left:auto">+ Account</button>
+      </div>
+      ${accs.map(a=>accHtml(k,a,def)).join('')||`<div class="empty">No accounts yet. Click <b>+ Account</b> to start.</div>`}
+    </div>`;
+  bindDevShift();
+}
+
+function renderDevices(k,cts,accs){
+  let list=cts.slice();
+  if(devProxy)list=list.filter(c=>(c.proxy_url||'direct')===devProxy);
+  if(devAcc)list=list.filter(c=>String(c.name||'').includes(`-${devAcc}-`));
+  const total=list.length;
+  const pages=Math.max(1,Math.ceil(total/devPer));
+  devPage=clamp(devPage,1,pages);
+  const start=(devPage-1)*devPer;
+  list=list.slice(start,start+devPer);
+  if(!list.length)return `<div class="empty" style="grid-column:1/-1">No devices match the current filters.</div>`;
+  return list.map(c=>devHtml(k,c)).join('')+`<div class="empty" style="grid-column:1/-1;padding:10px 0">Page ${devPage}/${pages} · ${total} total</div>`;
+}
+
+function bindDevShift(){
+  const boxes=[...document.querySelectorAll('.dev-chk')];
+  boxes.forEach((b,idx)=>{
+    b.onclick=(e)=>{
+      if(e.shiftKey && lastDevIdx!==null){
+        const a=Math.min(lastDevIdx,idx),z=Math.max(lastDevIdx,idx);
+        const v=b.checked;
+        for(let i=a;i<=z;i++)boxes[i].checked=v;
+      }
+      lastDevIdx=idx;
+      updDevBD();
+    };
+  });
+}
+
+function accHtml(k,a,def){
+  const credsHtml=(def.fields||[]).length?`
+    <div class="acc-creds">
+      ${def.fields.map(f=>`<div class="fg"><label>${f.label}</label><input class="inp" id="ac-${a.id}-${f.key}" type="${f.type==='password'?'password':'text'}" placeholder="${f.label}" value="${esc(a.credentials?.[f.key]||'')}"></div>`).join('')}
+      <button class="btn btn-accent btn-sm" onclick="saveAccCreds('${k}','${a.id}')" style="align-self:end">💾 Save creds</button>
+    </div>`:`<div class="acc-creds-empty">${t('no_credentials')}</div>`;
+  const ctsHtml=`<div class="acc-cts">${accCtsTable(k,a)}</div>`;
+  return`<div class="acc-card">
+    <div class="acc-hdr">
+      <label class="toggle"><input type="checkbox" ${a.enabled!==false?'checked':''} onchange="tglAcc('${k}','${a.id}',this.checked)"><span class="sl"></span></label>
+      <div class="nm">${esc(a.label)}</div>
+      <span class="badge b-blue">🌐 ${a.proxy_count||0}${def.limit>0?'/'+def.limit:''}</span>
+      ${a.run?`<span class="badge b-green">▶ ${a.run}</span>`:''}
+      ${a.errs?`<span class="badge b-red">✖ ${a.errs}</span>`:''}
+      <div style="margin-left:auto;display:flex;gap:4px;flex-wrap:wrap">
+        <button class="btn btn-green btn-sm" onclick="deployAcc('${k}','${a.id}')" title="${t('deploy_account')}">▶ ${t('deploy')}</button>
+        <button class="btn btn-green btn-sm" onclick="startAllAcc('${k}','${a.id}')" title="Start all stopped containers of this account, one by one (safer for big batches)">▶▶ Start all</button>
+        <button class="btn btn-sm" onclick="restartAcc('${k}','${a.id}')" title="${t('restart_account')}">🔄</button>
+        <button class="btn btn-red btn-sm" onclick="stopAcc('${k}','${a.id}')" title="${t('stop_account')}">⏹</button>
+        <button class="btn btn-red btn-sm" onclick="deleteAccCts('${k}','${a.id}')" title="${t('delete_containers')}">🗑️ Cts</button>
+        <button class="btn btn-sm" onclick="editAccMo('${k}','${a.id}')" title="${t('edit_account')}">✏️</button>
+        <button class="btn btn-red btn-sm" onclick="delAcc('${k}','${a.id}')" title="${t('delete_account')}">✕</button>
+      </div>
+    </div>
+    <div id="deploy-bar-${a.id}"></div>
+    ${credsHtml}
+    ${ctsHtml}
+  </div>`;
+}
+async function saveAccCreds(k,aid){
+  const def=apps.find(a=>a.key===k)||{};
+  const cr={};(def.fields||[]).forEach(f=>{const el=$(`ac-${aid}-${f.key}`);if(el)cr[f.key]=el.value.trim()});
+  const r=await api(`/api/acc/${k}/${aid}`,{method:'PUT',body:{credentials:cr}});
+  toast(r?.ok?t('saved_creds'):(r?.error||t('err')),r?.ok?'ok':'er');
+  if(r?.ok)loadApps();
+}
+async function deployAcc(k,aid){
+  const r=await api(`/api/acc/${k}/${aid}/deploy`,{method:'POST'});
+  if(!r?.ok){toast(r?.error||'Error','er');return}
+  if(r.job_id){toast(`Deploying ${r.total} containers...`,'ok');pollJob(r.job_id,aid,r.total,'deploy')}
+  else loadApps();
+}
+async function startAllAcc(k,aid){
+  const r=await api(`/api/acc/${k}/${aid}/start-all`,{method:'POST',body:{delay:0.3}});
+  if(!r?.ok){toast(r?.error||'No stopped containers','er');return}
+  if(r.job_id){
+    const iiN=r.ii_total||r.total;
+    toast(`Starting ${iiN} containers...`,'ok');
+    pollJob(r.job_id,aid,r.total,'start',{tun:r.tun_total,ii:r.ii_total});
+  }else loadApps();
+}
+// Poll job status and update inline progress bar on the account card
+// Shows only ii (app) container counts — tun infrastructure hidden from user
+async function pollJob(jid,aid,total,kind,extra){
+  const targetId='deploy-bar-'+aid;
+  const isStart=kind==='start';
+  const showBar=(iiDone,iiTot,totalDone,totalAll,status)=>{
+    const el=document.getElementById(targetId);if(!el)return;
+    const pct=Math.round((totalDone/Math.max(1,totalAll))*100);
+    const inTunPhase=iiDone===0 && totalDone>0 && totalDone<totalAll;
+    const lblRun=isStart
+      ?(inTunPhase?'⚙ Preparing network…':'⚙ Starting…')
+      :(inTunPhase?'⚙ Preparing network…':'⚙ '+t('deploy')+'…');
+    const lblDone=isStart?'✓ Started':'✓ '+t('deployed');
+    el.className='deploy-bar'+(status==='completed'?' done':'');
+    el.innerHTML=`<span class="lbl">${status==='completed'?lblDone:lblRun}</span>
+      <div class="track"><div class="fill" style="width:${pct}%"></div></div>
+      <span class="pct">${iiDone}/${iiTot}</span>`;
+  };
+  // Initial guess for ii_total (will be overwritten by first poll)
+  const initIiTotal=(extra && extra.ii)||total;
+  showBar(0,initIiTotal,0,total,'running');
+  let lastDone=-1;
+  while(true){
+    const j=await api(`/api/jobs/${jid}`);
+    if(!j||j.error)break;
+    if(j.done!==lastDone){showBar(j.ii_done||0,j.ii_total||initIiTotal,j.done,j.total,j.status);lastDone=j.done}
+    if(j.status==='completed'){
+      const verb=isStart?'Started':t('deployed');
+      const okN=j.ii_ok??j.ok_count;
+      const totN=j.ii_total??j.total;
+      toast(`${verb} ${okN}/${totN}`+(okN<totN?` · ${totN-okN} ${t('failed')}`:''),okN===totN?'ok':'er');
+      loadApps();
+      setTimeout(()=>{const el=document.getElementById(targetId);if(el)el.remove()},5000);
+      break;
+    }
+    await new Promise(r=>setTimeout(r,700));
+  }
+}
+async function stopAcc(k,aid){
+  if(!confirm(t('confirm_stop_acc')))return;
+  const r=await api(`/api/acc/${k}/${aid}/stop`,{method:'POST'});
+  toast(r?.ok?`${t('stopped')} ${r.stopped}/${r.total}`:t('err'),r?.ok?'ok':'er');
+  loadApps();
+}
+async function restartAcc(k,aid){
+  const r=await api(`/api/acc/${k}/${aid}/restart`,{method:'POST'});
+  toast(r?.ok?`Restarted ${r.restarted}`:'Error',r?.ok?'ok':'er');
+  loadApps();
+}
+async function deleteAccCts(k,aid){
+  if(!confirm(t('confirm_delete_cts')))return;
+  const r=await api(`/api/acc/${k}/${aid}/containers/delete`,{method:'POST'});
+  toast(r?.ok?`${t('removed')} ${r.removed} ${t('containers_word')}`:t('err'),r?.ok?'ok':'er');
+  loadApps();
+}
+
+function devHtml(k,c){
+  const up=c.running;
+  const proxy=c.proxy_url&&c.proxy_url!=='direct'?(c.proxy_url.split('@')[1]||c.proxy_url).substring(0,35):'Direct';
+  return`<div class="dev-card">
+    <div class="hdr"><div class="nm">${c.name.replace('ii-','')}</div></div>
+    <div class="st ${up?'ok':''}"><div class="dot ${up?'up':'dn'}"></div>${up?'Online':'Offline'}</div>
+    <div class="proxy">🌐 ${proxy}</div>
+    <div class="btns">
+      ${up?`<button class="btn btn-sm" onclick="ctA('${c.name}','restart')">🔄 Restart</button>
+            <button class="btn btn-sm" onclick="ctA('${c.name}','stop')">⏹ Stop</button>`
+          :`<button class="btn btn-green btn-sm" onclick="ctA('${c.name}','start')">▶ Start</button>`}
+      <button class="btn btn-sm" onclick="swapMo('${c.name}','${(c.proxy_url||'').replace(/'/g,"\\'")}')">🔀 Proxy</button>
+      <button class="btn btn-sm" onclick="vLog('${c.name}')">📋 Log</button>
+    </div>
+  </div>`;
+}
+
+function copyText(text){
+  const ok=()=>toast('Copied!','ok');
+  const fb=()=>{
+    const ta=document.createElement('textarea');
+    ta.value=text;ta.style.position='fixed';ta.style.top='0';ta.style.left='0';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.focus();ta.select();
+    let success=false;try{success=document.execCommand('copy')}catch(e){}
+    document.body.removeChild(ta);
+    if(success)ok();else toast('Copy failed (browser blocked)','er');
+  };
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(text).then(ok,fb);
+  }else{fb()}
+}
+
+// ====== ACTIONS ======
+async function appInfo(k){
+  const r=await api(`/api/apps/${k}/info`);if(!r||r.error){toast('Info error','er');return}
+  const d=r.docker||{},a=r.app||{};
+  showMo(`<h3>${a.icon||''} ${a.name||k}</h3>
+    <div class="info-grid">
+      <div class="info-box"><div class="k">Ref Link</div><div class="v">${r.ref_url?`<a href="${esc(r.ref_url)}" target="_blank" style="color:var(--accent)">Open register link</a>`:'-'}</div></div>
+      <div class="info-box"><div class="k">Docker Image</div><div class="v">${esc(d.image||'-')}</div></div>
+      <div class="info-box"><div class="k">Pulled</div><div class="v">${d.pulled?'Yes':'No'}</div></div>
+      <div class="info-box"><div class="k">Image ID</div><div class="v">${esc(d.id||'-')}</div></div>
+      <div class="info-box"><div class="k">Accounts</div><div class="v">${r.accounts||0}</div></div>
+      <div class="info-box"><div class="k">Devices</div><div class="v">${r.running||0}/${r.devices||0}</div></div>
+    </div>
+    <div class="mo-ft">
+      ${r.ref_url?`<button class="btn" onclick="window.open('${esc(r.ref_url)}','_blank')">Open Ref</button>`:''}
+      <button class="btn btn-accent" onclick="pullImage('${k}')">Pull / Update Image</button>
+      <button class="btn" onclick="hideMo()">Close</button>
+    </div>`);
+}
+async function pullImage(k){
+  toast('Pulling image...','if');
+  const r=await api(`/api/apps/${k}/pull-image`,{method:'POST'});
+  if(!r||r.error){toast('Pull error: '+(r?.error||''),'er');return}
+  showMo(`<h3>Docker Pull</h3>
+    <div class="info-grid"><div class="info-box"><div class="k">Image</div><div class="v">${esc(r.image)}</div></div><div class="info-box"><div class="k">Status</div><div class="v">${r.ok?'OK':'Failed'}</div></div></div>
+    <div class="logbox">${esc(r.output||'')}</div>
+    <div class="mo-ft"><button class="btn btn-accent" onclick="appInfo('${k}')">Back</button><button class="btn" onclick="hideMo()">Close</button></div>`,true);
+}
+async function qSave(k){
+  const def=apps.find(a=>a.key===k);if(!def)return;
+  const cr={};(def.fields||[]).forEach(f=>{const el=$(`qf-${k}-${f.key}`);if(el)cr[f.key]=el.value.trim()});
+  const r=await api(`/api/apps/${k}/qsave`,{method:'POST',body:{credentials:cr}});
+  toast(r?.ok?'Saved':'Error',r?.ok?'ok':'er');loadApps();
+}
+
+async function deployApp(k){
+  const def=apps.find(a=>a.key===k)||{};
+  if(def.fields?.length){
+    const cr={};def.fields.forEach(f=>{const el=$(`qf-${k}-${f.key}`);if(el)cr[f.key]=el.value.trim()});
+    await api(`/api/apps/${k}/qsave`,{method:'POST',body:{credentials:cr}});
+  }
+  toast(`Deploying ${def.name||k}...`,'if');
+  const r=await api(`/api/apps/${k}/deploy`,{method:'POST'});
+  if(!r||r.error){toast('Error: '+(r?.error||''),'er');return}
+  showMo(`<h3>Deploy — ${def.name||k}</h3>
+    <p style="margin-bottom:10px">${r.deployed} OK, ${r.failed} fail</p>
+    ${(r.results||[]).map(x=>`<div style="padding:5px 8px;margin-bottom:3px;border-radius:6px;font-size:11px;font-family:var(--mono);border-left:3px solid ${x.ok?'var(--green)':'var(--red)'};background:${x.ok?'rgba(34,197,94,.06)':'rgba(239,68,68,.06)'}">
+      ${x.ok?'✅':'❌'} ${x.name} → ${x.proxy||'direct'}
+    </div>`).join('')}
+    <div class="mo-ft"><button class="btn btn-accent" onclick="hideMo()">OK</button></div>`);
+  loadApps();
+}
+
+async function stopApp(k){if(!confirm('Stop all containers for this app?'))return;const r=await api(`/api/apps/${k}/stop`,{method:'POST'});toast(r?.ok?`Stopped ${r.stopped}/${r.total}`:'Error',r?.ok?'ok':'er');loadApps()}
+async function deleteApp(k){if(!confirm('Delete all containers for this app?'))return;const r=await api(`/api/apps/${k}/delete`,{method:'POST'});toast(r?.ok?`Deleted ${r.removed}`:'Error',r?.ok?'ok':'er');loadApps()}
+async function restartApp(k){const r=await api(`/api/apps/${k}/restart`,{method:'POST'});toast(r?.ok?`Restarted ${r.restarted}`:'Error',r?.ok?'ok':'er');loadApps()}
+
+async function ctA(n,a){
+  if(a==='rm'&&!confirm('Delete?'))return;
+  await api(`/api/ct/${n}/${a}`,{method:'POST'});toast(`${a} OK`,'ok');loadApps();
+}
+function updDevBD(){const n=[...document.querySelectorAll('.dev-chk:checked')].length;const b=$('devBD');if(!b)return;b.style.display=n?'inline-flex':'none';b.textContent=`🗑️ Delete ${n}`}
+async function deleteSelectedDevices(k){
+  const names=[...document.querySelectorAll('.dev-chk:checked')].map(c=>c.value);
+  if(!names.length||!confirm(`Delete ${names.length} device?`))return;
+  for(const n of names)await api(`/api/ct/${n}/rm`,{method:'POST'});
+  toast(`Deleted ${names.length}`,'ok');loadApps();if(k)loadApp(k);
+}
+
+async function vLog(n){
+  const r=await api(`/api/ct/${n}/logs`);
+  showMo(`<h3>📋 Logs</h3><p style="font-size:11px;color:var(--t3);margin-bottom:6px">${n}</p>
+    <div class="logbox">${(r?.logs||'No logs / disabled').replace(/</g,'&lt;')}</div>
+    <div class="mo-ft"><button class="btn btn-accent" onclick="hideMo()">Close</button></div>`);
+}
+
+function swapMo(name,cur){
+  const px=proxies.filter(p=>p.enabled!==false);
+  showMo(`<h3>🔀 Change Proxy</h3>
+    <p style="font-size:11px;color:var(--t3);margin-bottom:4px">${name}</p>
+    <p style="font-size:11px;margin-bottom:10px">Current: <code style="background:var(--bg3);padding:2px 6px;border-radius:4px;font-family:var(--mono)">${cur||'direct'}</code></p>
+    <div class="fg"><label>New Proxy</label>
+      <select class="inp" id="swap-url" style="font-size:13px">${px.map(p=>`<option value="${p.url}">${p.url}</option>`).join('')}</select>
+    </div>
+    <div class="mo-ft"><button class="btn" onclick="hideMo()">Cancel</button><button class="btn btn-accent" onclick="doSwap('${name}')">Change & Restart</button></div>`);
+}
+async function doSwap(name){
+  const url=$('swap-url').value;if(!url)return;
+  toast('Changing proxy...','if');
+  const r=await api(`/api/ct/${name}/swap-proxy`,{method:'POST',body:{proxy_url:url}});
+  hideMo();toast(r?.ok?'Proxy changed':'Error',r?.ok?'ok':'er');loadApps();
+}
+
+// ====== ACCOUNT CRUD ======
+function addAccMo(k){
+  const def=apps.find(a=>a.key===k)||{};
+  const px=proxies.filter(p=>p.enabled!==false);
+  showMo(`<h3>➕ Account — ${def.name||k}</h3>
+    ${def.limit>0?`<p style="font-size:11px;color:var(--yellow);margin-bottom:6px">⚡ Max ${def.limit} proxy/acc</p>`:''}
+    <div class="fg"><label>Tên</label><input class="inp" id="nal" value="Account ${(def.accs||0)+1}"></div>
+    ${(def.fields||[]).map(f=>`<div class="fg"><label>${f.label}</label><input class="inp" id="na-${f.key}" type="${f.type}"></div>`).join('')}
+    <div class="fg"><label>Proxy <button class="btn btn-sm" onclick="document.querySelectorAll('.napx').forEach(c=>c.checked=true)" style="margin-left:6px">All</button>
+      <button class="btn btn-sm" onclick="document.querySelectorAll('.napx').forEach(c=>c.checked=false)" style="margin-left:2px">None</button></label>
+      ${groupPickerInline('napx')}
+      <div class="px-sel">${px.length?px.map(p=>`<label class="px-opt"><input type="checkbox" value="${p.id}" class="napx"><span class="u">${p.url}</span></label>`).join(''):'<div style="padding:10px;color:var(--t3)">No proxies</div>'}</div>
+    </div>
+    <div class="mo-ft"><button class="btn" onclick="hideMo()">Cancel</button><button class="btn btn-accent" onclick="saveNewAcc('${k}')">Add</button></div>`);
+}
+async function saveNewAcc(k){
+  const def=apps.find(a=>a.key===k)||{};const label=$('nal').value.trim()||'Account';
+  const cr={};(def.fields||[]).forEach(f=>{cr[f.key]=$('na-'+f.key).value.trim()});
+  const pids=[...document.querySelectorAll('.napx:checked')].map(c=>c.value).filter(v=>v&&v!=='undefined');
+  if(def.limit>0&&pids.length>def.limit){toast(`Max ${def.limit}!`,'er');return}
+  await api(`/api/acc/${k}`,{method:'POST',body:{label,credentials:cr,proxy_ids:pids}});
+  hideMo();toast('Added','ok');loadApps();
+}
+
+async function editAccMo(k,aid){
+  const d=await api(`/api/apps/${k}/detail`);if(!d||d.error)return;
+  const def=d.d,acc=d.accounts.find(a=>a.id===aid);if(!acc)return;
+  const px=(d.proxies||[]).filter(p=>p.enabled!==false);
+  showMo(`<h3>✏️ Edit — ${def.name}</h3>
+    ${def.limit>0?`<p style="font-size:11px;color:var(--yellow);margin-bottom:6px">⚡ Max ${def.limit}</p>`:''}
+    <div class="fg"><label>Tên</label><input class="inp" id="eal" value="${acc.label}"></div>
+    ${def.fields.map(f=>`<div class="fg"><label>${f.label}</label><input class="inp" id="ea-${f.key}" type="${f.type}" value="${acc.credentials?.[f.key]||''}"></div>`).join('')}
+    <div class="fg"><label>Proxy <button class="btn btn-sm" onclick="document.querySelectorAll('.eapx').forEach(c=>c.checked=true)" style="margin-left:6px">All</button>
+      <button class="btn btn-sm" onclick="document.querySelectorAll('.eapx').forEach(c=>c.checked=false)" style="margin-left:2px">None</button></label>
+      ${groupPickerInline('eapx')}
+      <div class="px-sel">${px.map(p=>`<label class="px-opt"><input type="checkbox" value="${p.id}" class="eapx" ${(acc.proxy_ids||[]).includes(p.id)?'checked':''}><span class="u">${p.url}</span></label>`).join('')}</div>
+    </div>
+    <div class="mo-ft"><button class="btn" onclick="hideMo()">Cancel</button><button class="btn btn-accent" onclick="saveEdAcc('${k}','${aid}')">💾 Save</button></div>`);
+}
+async function saveEdAcc(k,aid){
+  const def=apps.find(a=>a.key===k)||{};const label=$('eal').value.trim();
+  const cr={};(def.fields||[]).forEach(f=>{cr[f.key]=$('ea-'+f.key).value.trim()});
+  const pids=[...document.querySelectorAll('.eapx:checked')].map(c=>c.value).filter(v=>v&&v!=='undefined'&&v!=='');
+  if(def.limit>0&&pids.length>def.limit){toast(`Max ${def.limit}!`,'er');return}
+  await api(`/api/acc/${k}/${aid}`,{method:'PUT',body:{label,credentials:cr,proxy_ids:pids}});
+  hideMo();toast(`Saved (${pids.length} proxy)`,'ok');loadApps();
+}
+async function tglAcc(k,aid,v){await api(`/api/acc/${k}/${aid}`,{method:'PUT',body:{enabled:v}});loadApps()}
+async function delAcc(k,aid){if(!confirm('Delete?'))return;await api(`/api/acc/${k}/${aid}`,{method:'DELETE'});loadApps()}
+
+// ====== PROXIES ======
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function proxyParts(raw){
+  try{
+    const u=new URL(raw);
+    return{scheme:u.protocol.replace(':','')||'proxy',host:u.hostname,port:u.port||'--',user:u.username?'user':'no auth'};
+  }catch{
+    const clean=String(raw||'');
+    return{scheme:clean.split(':',1)[0]||'proxy',host:clean.replace(/^[a-z0-9+.-]+:\/\//i,'').split('@').pop().split('/')[0],port:'--',user:clean.includes('@')?'user':'no auth'};
+  }
+}
+async function loadPx(){
+  proxies=await api('/api/proxies/usage')||[];
+  $('px-cnt').textContent=`${proxies.filter(p=>p.enabled!==false).length} ${t('proxy_count_active')} / ${proxies.length} ${t('proxy_count_total')}`;
+  const list=proxies.slice();
+  const host=pxHost.trim();
+  let filtered=list;
+  if(host)filtered=filtered.filter(p=>proxyParts(p.url).host.includes(host));
+  const activeGroup=pxGroupFilter?groups.find(g=>g.id===pxGroupFilter):null;
+  if(activeGroup){const set=new Set(activeGroup.proxy_ids||[]);filtered=filtered.filter(p=>set.has(p.id))}
+  else if(pxGroupFilter){pxGroupFilter=''}
+  const filteredIds=filtered.map(p=>p.id);
+  const pages=Math.max(1,Math.ceil(filtered.length/pxPer));
+  pxPage=clamp(pxPage,1,pages);
+  const pageList=filtered.slice((pxPage-1)*pxPer,pxPage*pxPer);
+  const pageIds=pageList.map(p=>p.id);
+  curPageIds=pageIds;
+  const allPageSel=pageIds.length>0 && pageIds.every(id=>pxSel.has(id));
+  const allFilteredSel=filteredIds.length>0 && filteredIds.every(id=>pxSel.has(id));
+  $('px-list').innerHTML=proxies.length?`
+    <div class="toolbar" style="margin-bottom:8px">
+      <input class="inp" style="width:220px" placeholder="Filter host..." value="${esc(pxHost)}" oninput="pxHost=this.value;pxPage=1;loadPx()">
+      <select class="inp" style="width:120px" onchange="pxPer=Number(this.value);pxPage=1;loadPx()">
+        ${[10,20,30,50].map(n=>`<option value="${n}" ${pxPer===n?'selected':''}>${n}/page</option>`).join('')}
+      </select>
+      <button class="btn btn-sm" onclick="pxPage=Math.max(1,pxPage-1);loadPx()">◀</button>
+      <button class="btn btn-sm" onclick="pxPage=pxPage+1;loadPx()">▶</button>
+      <button class="btn btn-sm ${allPageSel?'btn-accent':''}" onclick="pxSelectPage(${JSON.stringify(pageIds)},${!allPageSel})" title="${t('select_all_page')}">${allPageSel?'✓':'☐'} ${t('page')}</button>
+      <button class="btn btn-sm ${allFilteredSel?'btn-accent':''}" onclick="pxSelectPage(${JSON.stringify(filteredIds)},${!allFilteredSel})" title="${t('select_all_filtered')}">${allFilteredSel?'✓':'☐'} ${t('filtered')} (${filtered.length})</button>
+      <button class="btn btn-sm" onclick="pxSel.clear();lastPxIdx=null;loadPx()" title="${t('clear_sel')}">${t('clear_sel')}</button>
+      <span class="badge b-blue">${t('selected')}: ${pxSel.size}</span>
+      <span style="margin-left:auto;color:var(--t3);font-size:12px">💡 ${t('hint_shift')} · ${t('page')} ${pxPage}/${pages} · ${filtered.length} ${t('filtered').toLowerCase()} / ${list.length} ${t('proxy_count_total')}</span>
+    </div>
+    <div class="px-grid">${pageList.map((p,i)=>{const pp=proxyParts(p.url);const n=((pxPage-1)*pxPer)+i+1;return`
+    ${(()=>{
+      // Combine tun + live status into a single effective state
+      const tun=p.tun||'missing';
+      let state=tun;
+      if(tun==='running'){
+        if(p.live){state=p.live.alive?'running':'dead'}
+        else state='unchecked';
+      }
+      const stateLabel={running:'running',stopped:'stopped',missing:'missing',dead:'not live',unchecked:'unchecked'}[state]||state;
+      const ipLine=p.live?(p.live.alive?`IP: ${esc(p.live.ip||'?')}`:`<span style="color:var(--red);font-weight:700">⚠ Proxy not live</span>`):`<span style="color:var(--t3)">${esc(pp.host)}:${esc(pp.port)}</span>`;
+      return `<div class="px-card tun-${state==='unchecked'?'running':state} ${p.enabled===false?'off':''}" onclick="if(!event.target.matches('.px-chk'))showPxActions('${p.id}')">
+      <div class="top">
+        <input type="checkbox" class="px-chk" value="${p.id}" data-idx="${i}" ${pxSel.has(p.id)?'checked':''} onclick="event.stopPropagation();pxChkClick(event,'${p.id}',${i})">
+        <div class="title">Proxy ${n}</div>
+        <span class="tun-status ${state}">${stateLabel}</span>
+      </div>
+      <div class="type">${esc(pp.scheme)}</div>
+      <div class="host" title="${esc(p.url)}">${ipLine}</div>
+    </div>`;
+    })()}`}).join('')}</div>`:'<div class="empty">No proxies yet</div>';
+  updPxBD();
+  renderPgChips();
+  // Auto-detect missing tuns and trigger silent sync
+  const enabledProxies=proxies.filter(p=>p.enabled!==false);
+  const missing=enabledProxies.filter(p=>p.tun==='missing'||p.tun==='stopped');
+  const totalEn=enabledProxies.length;
+  const ready=enabledProxies.filter(p=>p.tun==='running').length;
+  $('px-cnt').textContent=`${totalEn} active / ${proxies.length} total · ${ready}/${totalEn} tuns ready`+(missing.length?` · ⚠ ${missing.length} missing`:' ✓');
+  if(missing.length && !window._autoSyncing){
+    window._autoSyncing=true;
+    api('/api/proxies/sync-tuns',{method:'POST'}).then(r=>{
+      if(r?.job_id){
+        toast(`Auto-syncing ${missing.length} missing tuns in background...`,'ok');
+        // Poll silently and refresh px list when done
+        (async function poll(){
+          while(true){
+            const j=await api(`/api/jobs/${r.job_id}`);
+            if(!j||j.error||j.status==='completed')break;
+            await new Promise(rs=>setTimeout(rs,2000));
+          }
+          window._autoSyncing=false;
+          loadPx();
+        })();
+      }else{window._autoSyncing=false}
+    }).catch(()=>{window._autoSyncing=false});
+  }
+}
+
+// Click handler hỗ trợ shift-click để chọn dãy proxy trong page
+function pxChkClick(ev,id,idx){
+  const on=ev.target.checked;
+  if(ev.shiftKey && lastPxIdx!==null && lastPxIdx!==idx && curPageIds.length){
+    const a=Math.min(lastPxIdx,idx),b=Math.max(lastPxIdx,idx);
+    for(let i=a;i<=b;i++){const pid=curPageIds[i];if(!pid)continue;if(on)pxSel.add(pid);else pxSel.delete(pid)}
+    lastPxIdx=idx;loadPx();return;
+  }
+  lastPxIdx=idx;
+  if(on)pxSel.add(id);else pxSel.delete(id);
+  loadPx();
+}
+function pxSelectPage(ids,on){ids.forEach(id=>{if(on)pxSel.add(id);else pxSel.delete(id)});loadPx()}
+function pxSelectFiltered(ids,on){ids.forEach(id=>{if(on)pxSel.add(id);else pxSel.delete(id)});loadPx()}
+function proxyRows(list){
+  return list.map((p,i)=>{const pp=proxyParts(p.url);return`
+    <tr class="${p.enabled===false?'off':''}">
+      <td><input type="checkbox" class="px-chk" value="${p.id}" onchange="updPxBD()" style="accent-color:var(--accent);width:15px;height:15px"></td>
+      <td class="mono">#${i+1}</td>
+      <td><label class="toggle"><input type="checkbox" ${p.enabled!==false?'checked':''} onchange="tgPx('${p.id}')"><span class="sl"></span></label></td>
+      <td class="mono" title="${esc(p.url)}">${esc(pp.host)}:${esc(pp.port)}<div class="meta"><span class="pill">${esc(pp.scheme)}</span><span class="pill">${esc(pp.user)}</span></div></td>
+      <td>${p.label?`<span class="badge b-blue">${esc(p.label)}</span>`:''}</td>
+      <td><button class="btn-icon" onclick="dPx('${p.id}')" style="color:var(--red)">✕</button></td>
+    </tr>`}).join('');
+}
+async function showProxyManager(){
+  const list=await api('/api/proxies/usage')||[];
+  showMo(`<h3>🌐 Proxy Table</h3>
+    <div class="toolbar">
+      <button class="btn btn-red btn-sm" id="pxModalBD" style="display:none" onclick="bulkDelPx()">🗑️ Delete</button>
+      <button class="btn btn-sm" onclick="showAddPx()">+ Add</button>
+      <button class="btn btn-sm" onclick="showImpPx()">Import</button>
+    </div>
+    <div style="max-height:60vh;overflow:auto;border:1px solid var(--border);border-radius:8px">
+      <table class="mini-table"><thead><tr><th></th><th>#</th><th>On</th><th>Proxy</th><th>Label</th><th></th></tr></thead>
+      <tbody>${list.length?proxyRows(list):'<tr><td colspan="6" class="empty">No proxies</td></tr>'}</tbody></table>
+    </div>
+    <div class="mo-ft"><button class="btn btn-accent" onclick="hideMo()">Close</button></div>`,true);
+}
+function updPxBD(){const n=pxSel.size;['pxBD','pxModalBD'].forEach(id=>{const b=$(id);if(b){b.style.display=n?'inline-flex':'none';b.textContent=`🗑️ Delete ${n}`}})}
+async function bulkDelPx(){
+  const ids=[...pxSel];
+  if(!ids.length||!confirm(`Delete ${ids.length}?`))return;
+  await api('/api/proxies/bulk-rm',{method:'POST',body:{ids}});pxSel.clear();toast('Deleted','ok');hideMo();loadPx();loadApps();
+}
+function showAddPx(){showMo(`<h3>➕ Proxy</h3><div class="fg"><label>URL</label><input class="inp" id="npu" placeholder="socks5://user:pass@host:port"></div><p style="font-size:11px;color:var(--t3);margin:-2px 0 10px">Supported formats: socks5://user:pass@ip:port, http://user:pass@ip:port, socks5://ip:port</p><div class="fg"><label>Label</label><input class="inp" id="npl"></div><div class="mo-ft"><button class="btn" onclick="hideMo()">Cancel</button><button class="btn btn-accent" onclick="aPx()">Add</button></div>`)}
+async function aPx(){const u=$('npu').value.trim();if(!u)return;await api('/api/proxies/add',{method:'POST',body:{url:u,label:$('npl').value.trim()}});hideMo();toast('Added','ok');loadPx();loadApps()}
+function showImpPx(){showMo(`<h3>📥 ${t('import_proxies')}</h3>
+  <div class="fg"><label>${t('one_per_line')}</label><textarea class="inp" id="impt" style="height:140px" placeholder="socks5://user:pass@ip:port&#10;http://user:pass@ip:port&#10;socks5://ip:port"></textarea></div>
+  <p style="font-size:11px;color:var(--t3);margin:-2px 0 10px">Use one proxy per line. Include the protocol prefix so routing can be configured correctly.</p>
+  <div class="fg"><label>📦 ${t('create_group_optional')}</label>
+    <input class="inp" id="impg" placeholder="${t('leave_empty_no_group')}">
+  </div>
+  <p style="font-size:11px;color:var(--t3);margin:-2px 0 10px">${t('group_hint')}</p>
+  <div class="mo-ft"><button class="btn" onclick="hideMo()">${t('cancel')}</button><button class="btn btn-accent" onclick="iPx()">${t('import_')}</button></div>`)}
+async function iPx(){
+  const text=$('impt').value;const gname=$('impg').value.trim();
+  const r=await api('/api/proxies/import',{method:'POST',body:{text}});
+  if(!r?.ok){toast(r?.error||'Import error','er');return}
+  if(gname && r.ids?.length){
+    const gr=await api('/api/proxy-groups',{method:'POST',body:{name:gname,proxy_ids:r.ids}});
+    if(gr?.ok)toast(`Import ${r.count} → group "${gname}"`,'ok');
+    else toast(`Imported ${r.count} nhưng tạo group lỗi: ${gr?.error||''}`,'er');
+  }else toast(`${r.count} imported`,'ok');
+  hideMo();loadPx();loadApps();loadPg();
+}
+async function tgPx(id){await api(`/api/proxies/${id}/toggle`,{method:'POST'});loadPx()}
+async function dPx(id){if(!confirm('Delete?'))return;await api(`/api/proxies/${id}`,{method:'DELETE'});loadPx()}
+// Per-proxy actions modal (replaces inline toggle/delete buttons on card)
+function showPxActions(pid){
+  const p=proxies.find(x=>x.id===pid);if(!p)return;
+  const pp=proxyParts(p.url);
+  const enabled=p.enabled!==false;
+  const tun=p.tun||'missing';
+  const tunLabel={running:'🟢 Running',stopped:'🟡 Stopped',missing:'🔴 Missing'}[tun]||tun;
+  const usage=p.usage||[];
+  showMo(`<h3>🌐 Proxy details</h3>
+    <div class="det-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-bottom:14px">
+      <div class="det-box" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 10px"><div style="font-size:9px;color:var(--t3);text-transform:uppercase;font-weight:700">ID</div><div class="mono" style="font-family:var(--mono);font-size:11px">${esc(p.id)}</div></div>
+      <div class="det-box" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 10px"><div style="font-size:9px;color:var(--t3);text-transform:uppercase;font-weight:700">Scheme</div><div class="mono" style="font-family:var(--mono);font-size:11px">${esc(pp.scheme)}</div></div>
+      <div class="det-box" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 10px"><div style="font-size:9px;color:var(--t3);text-transform:uppercase;font-weight:700">Host</div><div class="mono" style="font-family:var(--mono);font-size:11px">${esc(pp.host)}:${esc(pp.port)}</div></div>
+      <div class="det-box" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 10px"><div style="font-size:9px;color:var(--t3);text-transform:uppercase;font-weight:700">Auth</div><div class="mono" style="font-family:var(--mono);font-size:11px">${esc(pp.user)}</div></div>
+      <div class="det-box" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 10px"><div style="font-size:9px;color:var(--t3);text-transform:uppercase;font-weight:700">State</div><div class="mono" style="font-family:var(--mono);font-size:11px">${enabled?'<span style="color:var(--green)">● Enabled</span>':'<span style="color:var(--red)">○ Disabled</span>'}</div></div>
+      <div class="det-box" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 10px"><div style="font-size:9px;color:var(--t3);text-transform:uppercase;font-weight:700">Status</div><div class="mono" style="font-family:var(--mono);font-size:11px">${tunLabel}</div></div>
+      <div class="det-box" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 10px"><div style="font-size:9px;color:var(--t3);text-transform:uppercase;font-weight:700">Live IP</div><div class="mono" style="font-family:var(--mono);font-size:11px">${p.live?(p.live.alive?`<span style="color:var(--green)">${esc(p.live.ip||'?')}</span>`:`<span style="color:var(--red)">✗ not live</span>`):'<span style="color:var(--t3)">unchecked</span>'}</div></div>
+      <div class="det-box" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 10px"><div style="font-size:9px;color:var(--t3);text-transform:uppercase;font-weight:700">Last check</div><div class="mono" style="font-family:var(--mono);font-size:11px">${p.live&&p.live.checked_at?new Date(p.live.checked_at*1000).toLocaleTimeString():'never'}</div></div>
+    </div>
+    ${p.live&&p.live.err?`<div style="font-size:11px;color:var(--red);background:rgba(239,68,68,.08);padding:6px 10px;border-radius:6px;margin-bottom:10px;font-family:var(--mono)">⚠ ${esc(p.live.err)}</div>`:''}
+    <div class="fg" style="margin-bottom:12px"><label>URL</label>
+      <div style="display:flex;gap:6px"><input class="inp" value="${esc(p.url)}" readonly style="font-family:var(--mono);font-size:11px"><button class="btn btn-sm" onclick="copyText('${esc(p.url).replace(/'/g,'\\\\&apos;')}')">📋 Copy</button></div>
+    </div>
+    ${(()=>{
+      const reserved=usage.filter(u=>!u.deployed);
+      const deployed=usage.filter(u=>u.deployed);
+      if(!reserved.length && !deployed.length)return '';
+      let html='';
+      if(reserved.length){
+        html+=`<div style="margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;margin-bottom:6px">📌 Reserved by ${reserved.length} account${reserved.length>1?'s':''} (config only, no container)</div>
+          <div style="max-height:90px;overflow:auto;font-size:11px;font-family:var(--mono);background:var(--bg3);border-radius:6px;padding:6px 8px">${reserved.map(u=>`• ${esc(u.app_name||u.app||'?')} · ${esc(u.account||'')}`).join('<br>')}</div></div>`;
+      }
+      if(deployed.length){
+        html+=`<div style="margin-bottom:12px"><div style="font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;margin-bottom:6px">✓ Currently deployed (${deployed.length} container${deployed.length>1?'s':''})</div>
+          <div style="max-height:90px;overflow:auto;font-size:11px;font-family:var(--mono);background:rgba(34,197,94,.08);border-radius:6px;padding:6px 8px">${deployed.map(u=>`• ${esc(u.app_name||u.app||'?')} · ${esc(u.account||'')}`).join('<br>')}</div></div>`;
+      }
+      return html;
+    })()}
+    <div class="mo-ft" style="gap:6px;flex-wrap:wrap">
+      <button class="btn" onclick="hideMo()">${t('cancel')}</button>
+      <button class="btn" onclick="pxModalCheck('${p.id}')">🔍 Check live</button>
+      <button class="btn ${enabled?'btn-red':'btn-green'}" onclick="pxModalToggle('${p.id}')">${enabled?'⏸ Disable':'▶ Enable'}</button>
+      <button class="btn btn-red" onclick="pxModalDelete('${p.id}')">🗑️ Delete proxy</button>
+    </div>`,true);
+}
+async function pxModalToggle(pid){
+  await api(`/api/proxies/${pid}/toggle`,{method:'POST'});
+  hideMo();toast('Toggled','ok');loadPx();
+}
+async function pxModalDelete(pid){
+  if(!confirm('Delete this proxy? (Shared tun will be removed too)'))return;
+  await api(`/api/proxies/${pid}`,{method:'DELETE'});
+  hideMo();toast('Deleted','ok');loadPx();
+}
+async function pxModalCheck(pid){
+  toast('Checking proxy (up to 15s)...','if');
+  const r=await api(`/api/proxies/${pid}/check`,{method:'POST'});
+  if(r?.ok){
+    toast(r.alive?`✓ Live · IP: ${r.ip}`:`✗ Dead${r.err?': '+r.err:''}`,r.alive?'ok':'er');
+    // Refresh modal with new data
+    const fresh=await api('/api/proxies/usage');proxies=fresh||proxies;hideMo();showPxActions(pid);loadPx();
+  }else toast(r?.error||'Error','er');
+}
+async function checkAllLive(){
+  if(!confirm('Trigger live-check for all enabled proxies in background? (~60s for 218 proxies)'))return;
+  const r=await api('/api/proxies/check-all',{method:'POST'});
+  if(r?.ok)toast(r.message||'Live check started','ok');
+  else toast(r?.error||'Error','er');
+}
+async function clrPx(){if(!confirm('Clear ALL proxies?'))return;await api('/api/proxies/clear',{method:'POST'});loadPx()}
+// Sync shared tuns: ensure tun-px-<id> exists for each enabled proxy
+async function syncTuns(){
+  const r=await api('/api/proxies/sync-tuns',{method:'POST'});
+  if(!r?.ok){toast(r?.error||'Error','er');return}
+  if(r.job_id){
+    toast(`Syncing ${r.total} tunnels...`,'ok');
+    // Show progress in a floating bar at top of px-list (id matches pollJob's `deploy-bar-<aid>`)
+    const el=$('px-list');
+    if(!document.getElementById('deploy-bar-sync-tun')){
+      el.insertAdjacentHTML('afterbegin',`<div id="deploy-bar-sync-tun" class="deploy-bar" style="margin-bottom:8px"></div>`);
+    }
+    pollJob(r.job_id,'sync-tun',r.total,'start');
+  }
+}
+
+// ====== PROXY GROUPS ======
+async function loadPg(){
+  groups=await api('/api/proxy-groups')||[];
+  renderPgChips();
+  loadPx();
+}
+function renderPgChips(){
+  const el=$('pg-chips');if(!el)return;
+  if(!groups.length){el.innerHTML='<span style="color:var(--t3);font-size:11px;margin-left:4px">'+t('no_groups')+'</span>';return}
+  const all=`<button class="btn btn-sm ${pxGroupFilter?'':'btn-accent'}" onclick="setPgFilter('')" title="Show all proxies">All (${proxies.length})</button>`;
+  const chips=groups.map(g=>{
+    const active=pxGroupFilter===g.id;
+    return `<div style="display:inline-flex;align-items:center;gap:0;border:1px solid var(--border);border-radius:6px;overflow:hidden;${active?'box-shadow:0 0 0 1px var(--accent)':''}">
+      <button class="btn btn-sm ${active?'btn-accent':''}" style="border-radius:0;border:0" onclick="setPgFilter('${g.id}')" title="Filter ${g.count} proxies of this group">${esc(g.name)} <span style="opacity:.7;font-weight:400">${g.count}</span></button>
+      ${active?`<button class="btn btn-sm" style="border-radius:0;border:0;padding:6px 8px" onclick="showEditPg('${g.id}')" title="${t('edit_group')}">✏️</button>
+      <button class="btn btn-sm" style="border-radius:0;border:0;padding:6px 8px;color:var(--red)" onclick="delPg('${g.id}')" title="${t('confirm_delete_group')}">🗑️</button>`:''}
+    </div>`;
+  }).join('');
+  el.innerHTML=all+chips;
+}
+function setPgFilter(gid){pxGroupFilter=gid;pxPage=1;lastPxIdx=null;renderPgChips();loadPx()}
+function pgPickerHtml(selectedIds,cls){
+  const list=proxies.filter(p=>p.enabled!==false);
+  if(!list.length)return '<div style="padding:10px;color:var(--t3)">No proxies</div>';
+  const sel=new Set(selectedIds||[]);
+  return list.map(p=>`<label class="px-opt"><input type="checkbox" value="${p.id}" class="${cls}" ${sel.has(p.id)?'checked':''}><span class="u">${esc(p.url)}</span></label>`).join('');
+}
+function showAddPg(usePreselect){
+  const pre=usePreselect?[...pxSel]:[];
+  const hint=usePreselect?(pre.length?`<p style="font-size:11px;color:var(--cyan);margin:-2px 0 8px">✓ ${t('pre_selected')} ${pre.length} ${t('proxies_word')}</p>`:`<p style="font-size:11px;color:var(--yellow);margin:-2px 0 8px">⚠ ${t('no_proxies_ticked')}</p>`):'';
+  showMo(`<h3>📦 ${t('new_group')}</h3>
+    <div class="fg"><label>${t('group_name')}</label><input class="inp" id="pgn" placeholder="e.g. VN Residential" autofocus></div>
+    ${hint}
+    <div class="fg"><label>${t('proxies_in_group')} <span style="color:var(--t3);font-weight:400" id="pgn-cnt">${pre.length} ${t('selected').toLowerCase()}</span>
+      <button class="btn btn-sm" onclick="document.querySelectorAll('.pgpx').forEach(c=>c.checked=true);updPgnCnt()" style="margin-left:6px">All</button>
+      <button class="btn btn-sm" onclick="document.querySelectorAll('.pgpx').forEach(c=>c.checked=false);updPgnCnt()" style="margin-left:2px">None</button></label>
+      <div class="px-sel" onchange="updPgnCnt()">${pgPickerHtml(pre,'pgpx')}</div></div>
+    <div class="mo-ft"><button class="btn" onclick="hideMo()">${t('cancel')}</button><button class="btn btn-accent" onclick="saveAddPg()">${t('create')}</button></div>`,true);
+}
+function updPgnCnt(){const el=$('pgn-cnt');if(el)el.textContent=document.querySelectorAll('.pgpx:checked').length+' selected'}
+async function saveAddPg(){
+  const name=$('pgn').value.trim();if(!name){toast(t('need_name'),'er');return}
+  const ids=[...document.querySelectorAll('.pgpx:checked')].map(c=>c.value);
+  const r=await api('/api/proxy-groups',{method:'POST',body:{name,proxy_ids:ids}});
+  if(r?.ok){hideMo();toast(`${t('saved')}: "${name}" — ${ids.length} ${t('proxies_word')}`,'ok');pxSel.clear();loadPx();loadPg()}else{toast(r?.error||t('err'),'er')}
+}
+async function showEditPg(gid){
+  const g=groups.find(x=>x.id===gid);if(!g)return;
+  showMo(`<h3>✏️ Edit Group</h3>
+    <div class="fg"><label>Tên</label><input class="inp" id="pgn" value="${esc(g.name)}"></div>
+    <div class="fg"><label>Proxies
+      <button class="btn btn-sm" onclick="document.querySelectorAll('.pgpx').forEach(c=>c.checked=true)" style="margin-left:6px">All</button>
+      <button class="btn btn-sm" onclick="document.querySelectorAll('.pgpx').forEach(c=>c.checked=false)" style="margin-left:2px">None</button></label>
+      <div class="px-sel">${pgPickerHtml(g.proxy_ids,'pgpx')}</div></div>
+    <div class="mo-ft"><button class="btn" onclick="hideMo()">Cancel</button><button class="btn btn-accent" onclick="saveEditPg('${gid}')">💾 Save</button></div>`,true);
+}
+async function saveEditPg(gid){
+  const name=$('pgn').value.trim();
+  const ids=[...document.querySelectorAll('.pgpx:checked')].map(c=>c.value);
+  const r=await api(`/api/proxy-groups/${gid}`,{method:'PUT',body:{name,proxy_ids:ids}});
+  if(r?.ok){hideMo();toast('Saved','ok');loadPg()}else{toast(r?.error||'Error','er')}
+}
+async function delPg(gid){
+  if(!confirm(t('confirm_delete_group')))return;
+  await api(`/api/proxy-groups/${gid}`,{method:'DELETE'});toast(t('removed'),'ok');loadPg();
+}
+
+// ====== CUSTOM DOCKER APPS ======
+let customApps=[];
+async function loadCa(){
+  customApps=await api('/api/custom-apps')||[];
+  $('ca-cnt').textContent=customApps.length?`${customApps.length} apps`:'(none)';
+  $('ca-list').innerHTML=customApps.length?`<div class="px-grid">${customApps.map(c=>`
+    <div class="px-card">
+      <div class="top"><div class="title">${esc(c.icon||'🛠️')} ${esc(c.name)}</div></div>
+      <div class="type">${esc(c.key)}</div>
+      <div class="host" style="font-family:var(--mono);font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(c.cmd_template)}">${esc(c.cmd_template.slice(0,80))}${c.cmd_template.length>80?'…':''}</div>
+      <div style="margin-top:8px;display:flex;gap:6px">
+        <button class="btn btn-sm" onclick="showEditCa('${c.key}')">✏️ ${t('edit')}</button>
+        <button class="btn btn-sm" style="color:var(--red)" onclick="delCa('${c.key}')">🗑️</button>
+      </div>
+    </div>`).join('')}</div>`:`<div class="empty">${t('custom_app_empty')}</div>`;
+}
+function caModal(title,c){
+  const fields=c?.fields||[];
+  const fieldsRowsHtml=fields.length?fields.map((f,i)=>caFieldRow(f,i)).join(''):'';
+  return `<h3>${title}</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:8px">
+      <div class="fg"><label>${t('ca_key_help')}</label><input class="inp" id="ca-key" value="${esc(c?.key||'')}" ${c?'disabled':''} placeholder="myapp"></div>
+      <div class="fg"><label>${t('ca_name_help')}</label><input class="inp" id="ca-name" value="${esc(c?.name||'')}" placeholder="My App"></div>
+      <div class="fg"><label>${t('ca_icon_help')}</label><input class="inp" id="ca-icon" value="${esc(c?.icon||'🛠️')}" maxlength="4"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 80px 80px;gap:10px;margin-bottom:8px">
+      <div class="fg"><label>${t('ca_desc')}</label><input class="inp" id="ca-desc" value="${esc(c?.desc||'')}" placeholder="Short description"></div>
+      <div class="fg"><label>${t('ca_pay')}</label><input class="inp" id="ca-pay" value="${esc(c?.pay||'')}" placeholder="Crypto / PayPal"></div>
+      <div class="fg"><label>${t('ca_color')}</label><input class="inp" id="ca-color" type="color" value="${esc(c?.color||'#64748b')}" style="padding:4px;height:34px"></div>
+      <div class="fg"><label>${t('ca_limit')}</label><input class="inp" id="ca-limit" type="number" min="0" value="${c?.limit||0}"></div>
+    </div>
+    <div class="fg" style="margin-bottom:8px">
+      <label>${t('ca_fields_help')} <button class="btn btn-sm" onclick="caAddField()" style="margin-left:6px">+ Field</button></label>
+      <div id="ca-fields" style="display:flex;flex-direction:column;gap:6px;padding:8px;background:var(--bg3);border-radius:6px">${fieldsRowsHtml||`<div style="color:var(--t3);font-size:11px">${t('ca_no_fields')}</div>`}</div>
+    </div>
+    <div class="fg" style="margin-bottom:8px">
+      <label>${t('ca_cmd_help')}
+        <span style="color:var(--t3);font-weight:400;font-size:10px;margin-left:6px">${t('ca_cmd_placeholders')}</span>
+      </label>
+      <textarea class="inp" id="ca-cmd" style="font-family:var(--mono);font-size:11px;height:90px" placeholder="docker run -d --name {name} {net} --restart=always -e EMAIL={email} -e PASS={password} myorg/myimage:latest">${esc(c?.cmd_template||'docker run -d --name {name} {net} --restart=always myorg/myimage:latest')}</textarea>
+      <div style="font-size:10px;color:var(--t3);margin-top:4px">${t('ca_cmd_required_meta')}</div>
+    </div>
+    <div class="mo-ft"><button class="btn" onclick="hideMo()">${t('cancel')}</button>
+      <button class="btn btn-accent" onclick="${c?`saveEditCa('${c.key}')`:'saveAddCa()'}">${c?'💾 '+t('save'):t('create')}</button></div>`;
+}
+function caFieldRow(f,i){
+  return `<div style="display:flex;gap:6px;align-items:center" data-fidx="${i}">
+    <input class="inp ca-fk" placeholder="key (vd email)" value="${esc(f?.key||'')}" style="flex:1">
+    <input class="inp ca-fl" placeholder="label (vd Email)" value="${esc(f?.label||'')}" style="flex:1">
+    <select class="inp ca-ft" style="width:110px">
+      ${['text','email','password'].map(t=>`<option value="${t}" ${(f?.type||'text')===t?'selected':''}>${t}</option>`).join('')}
+    </select>
+    <button class="btn btn-sm" style="color:var(--red)" onclick="this.parentElement.remove()">✕</button>
+  </div>`;
+}
+function caAddField(){
+  const el=$('ca-fields');
+  if(el.querySelector('div[style*="color:var(--t3)"]'))el.innerHTML='';
+  el.insertAdjacentHTML('beforeend',caFieldRow(null,el.children.length));
+}
+function caCollect(){
+  const fields=[...document.querySelectorAll('#ca-fields > div[data-fidx]')].map(r=>({
+    key:r.querySelector('.ca-fk').value.trim(),
+    label:r.querySelector('.ca-fl').value.trim(),
+    type:r.querySelector('.ca-ft').value,
+  })).filter(x=>x.key&&x.label);
+  return {
+    key:$('ca-key').value.trim().toLowerCase(),
+    name:$('ca-name').value.trim(),
+    icon:$('ca-icon').value.trim()||'🛠️',
+    color:$('ca-color').value,
+    desc:$('ca-desc').value.trim(),
+    pay:$('ca-pay').value.trim(),
+    limit:Number($('ca-limit').value||0),
+    fields,
+    cmd_template:$('ca-cmd').value.trim(),
+  };
+}
+function showAddCa(){showMo(caModal('🛠️ New Custom Docker App',null),true)}
+async function saveAddCa(){
+  const d=caCollect();
+  if(!d.key){toast(t('need_key'),'er');return}
+  if(!d.name){toast(t('need_name'),'er');return}
+  if(!d.cmd_template){toast(t('need_cmd'),'er');return}
+  const r=await api('/api/custom-apps',{method:'POST',body:d});
+  if(r?.ok){hideMo();toast(`${t('create')}: "${d.name}"`,'ok');loadCa();loadApps()}
+  else toast(r?.error||t('err'),'er');
+}
+function showEditCa(key){
+  const c=customApps.find(x=>x.key===key);if(!c)return;
+  showMo(caModal('✏️ Edit Custom App',c),true);
+}
+async function saveEditCa(key){
+  const d=caCollect();d.key=key; // key locked
+  if(!d.cmd_template){toast(t('need_cmd'),'er');return}
+  const r=await api(`/api/custom-apps/${key}`,{method:'PUT',body:d});
+  if(r?.ok){hideMo();toast(t('saved'),'ok');loadCa();loadApps()}
+  else toast(r?.error||t('err'),'er');
+}
+async function delCa(key){
+  if(!confirm(`${t('ca_delete_confirm')} "${key}"? (${t('ca_data_warn')})`))return;
+  await api(`/api/custom-apps/${key}`,{method:'DELETE'});
+  toast(t('removed'),'ok');loadCa();loadApps();
+}
+
+// ====== DANGER ZONE: clean / reset ======
+async function loadDisk(){
+  const el=$('disk-info');if(!el)return;
+  const r=await api('/api/system/disk');
+  if(!r?.ok){el.innerHTML='<span style="color:var(--red)">disk info error</span>';return}
+  el.innerHTML='💾 Docker disk: '+(r.items||[]).map(x=>`<b>${esc(x.type)}</b> ${esc(x.total)} (${esc(x.size)}, reclaimable: ${esc(x.reclaimable)})`).join(' · ');
+}
+async function cleanDisabled(){
+  if(!confirm('Remove all stopped/exited ii-* and tun-* containers? This frees disk space but containers will need re-deploy if you want them back.'))return;
+  const r=await api('/api/system/clean-disabled',{method:'POST'});
+  if(r?.ok){toast(`Cleaned ${r.removed} stopped containers`,'ok');loadApps();loadDisk()}
+  else toast(r?.error||'Error','er');
+}
+function showRebootMo(){
+  showMo(`<h3 style="color:var(--yellow)">🔁 Reboot Server</h3>
+    <p style="color:var(--t2);font-size:12px;margin-bottom:12px">Restart the host machine. Services with <code>restart=always</code> will come back automatically (1-3 min).</p>
+    <div class="fg"><label style="color:var(--yellow)">Type <code style="background:var(--bg3);padding:1px 6px;border-radius:4px">yes</code> to confirm</label>
+      <input class="inp" id="rb-confirm" placeholder="yes" autocomplete="off">
+    </div>
+    <div class="mo-ft">
+      <button class="btn" onclick="hideMo()">${t('cancel')}</button>
+      <button class="btn" style="background:var(--yellow);color:#000" onclick="doReboot()">🔁 REBOOT</button>
+    </div>`);
+  setTimeout(()=>$('rb-confirm')?.focus(),100);
+}
+async function doReboot(){
+  const conf=$('rb-confirm').value.trim();
+  if(conf.toLowerCase()!=='yes'){toast('Type "yes" exactly','er');return}
+  const r=await api('/api/system/reboot',{method:'POST',body:{confirm:'yes'}});
+  if(r?.ok){
+    showMo(`<h3>🔁 Reboot initiated</h3>
+      <p style="font-size:12px;color:var(--t2);line-height:1.6">Server is rebooting now. This page will lose connection in a few seconds.</p>
+      <p style="font-size:12px;color:var(--t2)">Wait 1-3 minutes then refresh.</p>
+      <div class="mo-ft"><button class="btn" onclick="hideMo()">OK</button></div>`);
+  }else toast(r?.error||'Error','er');
+}
+function showShutdownMo(){
+  showMo(`<h3 style="color:var(--red)">⏻ Shutdown Server</h3>
+    <p style="color:var(--red);font-size:12px;margin-bottom:8px"><b>⚠ Server will power off and require manual power-on (or Proxmox/console).</b></p>
+    <p style="color:var(--t2);font-size:12px;margin-bottom:12px">After shutdown, you cannot reach the server remotely until someone powers it back on.</p>
+    <div class="fg"><label style="color:var(--red)">Type <code style="background:var(--bg3);padding:1px 6px;border-radius:4px">yes</code> to confirm</label>
+      <input class="inp" id="sd-confirm" placeholder="yes" autocomplete="off">
+    </div>
+    <div class="mo-ft">
+      <button class="btn" onclick="hideMo()">${t('cancel')}</button>
+      <button class="btn btn-red" onclick="doShutdown()">⏻ SHUTDOWN</button>
+    </div>`);
+  setTimeout(()=>$('sd-confirm')?.focus(),100);
+}
+async function doShutdown(){
+  const conf=$('sd-confirm').value.trim();
+  if(conf.toLowerCase()!=='yes'){toast('Type "yes" exactly','er');return}
+  const r=await api('/api/system/shutdown',{method:'POST',body:{confirm:'yes'}});
+  if(r?.ok){
+    showMo(`<h3 style="color:var(--red)">⏻ Shutdown initiated</h3>
+      <p style="font-size:12px;color:var(--t2);line-height:1.6">Server will power off in ~5 seconds.</p>
+      <p style="font-size:12px;color:var(--t2)">Remote access lost until someone powers the host on again.</p>
+      <div class="mo-ft"><button class="btn" onclick="hideMo()">OK</button></div>`);
+  }else toast(r?.error||'Error','er');
+}
+function showResetMo(){
+  showMo(`<h3 style="color:var(--red)">🧨 Reset to Default</h3>
+    <p style="color:var(--yellow);font-size:12px;margin-bottom:10px"><b>⚠ This is destructive and cannot be undone.</b></p>
+    <p style="font-size:12px;color:var(--t2);margin-bottom:10px">Will permanently delete:</p>
+    <ul style="font-size:12px;color:var(--t2);margin-bottom:14px;padding-left:18px;line-height:1.6">
+      <li>All <b>containers</b> (ii-* and tun-*)</li>
+      <li>All <b>proxies</b> + proxy groups</li>
+      <li>All <b>account credentials</b> per app</li>
+      <li>Container metadata (EarnApp UUIDs, etc.)</li>
+      <li>Docker <b>images</b> + dangling volumes + cache (reclaim disk)</li>
+    </ul>
+    <p style="font-size:12px;color:var(--t2);margin-bottom:8px"><i>Note:</i> Custom Docker app definitions and Settings (device name, license) are kept.</p>
+    <div class="fg"><label style="color:var(--red)">Type <code style="background:var(--bg3);padding:1px 6px;border-radius:4px">yes</code> to confirm</label>
+      <input class="inp" id="reset-confirm" placeholder="yes" autocomplete="off">
+    </div>
+    <div class="mo-ft">
+      <button class="btn" onclick="hideMo()">${t('cancel')}</button>
+      <button class="btn btn-red" onclick="doReset()">🧨 RESET</button>
+    </div>`);
+  setTimeout(()=>$('reset-confirm')?.focus(),100);
+}
+async function doReset(){
+  const conf=$('reset-confirm').value.trim();
+  if(conf.toLowerCase()!=='yes'){toast('Type "yes" exactly to confirm','er');return}
+  // Show progress modal
+  showMo(`<h3>🧨 Reset in progress...</h3>
+    <p style="color:var(--t2);font-size:12px">Removing containers, proxies, images. This may take up to 2 minutes.</p>
+    <div class="deploy-bar" style="margin-top:10px"><span class="lbl">⚙ Resetting…</span>
+      <div class="track"><div class="fill" style="width:100%"></div></div>
+      <span class="pct">…</span></div>`);
+  const r=await api('/api/system/reset',{method:'POST',body:{confirm:conf}});
+  if(r?.ok){
+    showMo(`<h3 style="color:var(--green)">✓ Reset complete</h3>
+      <div style="font-size:12px;color:var(--t2);line-height:1.8;font-family:var(--mono)">
+        Containers removed: <b style="color:var(--t1)">${r.containers}</b><br>
+        Proxies removed: <b style="color:var(--t1)">${r.proxies}</b><br>
+        Proxy groups removed: <b style="color:var(--t1)">${r.groups}</b><br>
+        Accounts removed: <b style="color:var(--t1)">${r.accounts}</b><br>
+        Docker images removed: <b style="color:var(--t1)">${r.images}</b><br>
+        ${r.pruned_space?`Disk reclaimed: <b style="color:var(--green)">${esc(r.pruned_space)}</b><br>`:''}
+      </div>
+      <div class="mo-ft"><button class="btn btn-accent" onclick="hideMo();location.reload()">Reload page</button></div>`);
+  }else{
+    showMo(`<h3 style="color:var(--red)">✗ Reset failed</h3>
+      <p style="color:var(--red);font-size:12px">${esc(r?.error||'Unknown error')}</p>
+      <div class="mo-ft"><button class="btn" onclick="hideMo()">Close</button></div>`);
+  }
+}
+
+// ====== DONATE QR (fetched from control server) ======
+let donateWallets=[],donateIdx=0;
+function qrUrl(text){return `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(text)}&size=200x200&margin=2`}
+// Donation wallet is hard-coded — single BEP20 address baked into the client.
+const DONATE_BNB_ADDR='0x76d4519caf7B8c8038f514bBeBab1610705c3A71';
+function renderDonate(){
+  const el=$('sb-donate');if(!el)return;
+  el.innerHTML=`
+    <div class="lbl">💖 Donate</div>
+    <div class="chain"><button class="active" title="USDT BEP20">USDT-BNB (BEP20)</button></div>
+    <div class="qr-box"><img src="${qrUrl(DONATE_BNB_ADDR)}" alt="QR BEP20" loading="lazy"></div>
+    <div class="addr" onclick="copyText('${DONATE_BNB_ADDR}','Address copied')" title="Click to copy address">${DONATE_BNB_ADDR}</div>
+  `;
+}
+function setDonateIdx(_){renderDonate()}
+
+// ====== CONTAINER TABLE PER ACCOUNT ======
+const accCtState={};
+function getAccState(aid){
+  if(!accCtState[aid])accCtState[aid]={page:1,per:20,sel:new Set(),lastIdx:null,ids:[],filter:'all'};
+  return accCtState[aid];
+}
+function accCtsTable(k,a){
+  const cts=a.containers||[];
+  if(!cts.length)return `<div class="acc-empty-cts">${t('no_containers')}</div>`;
+  const st=getAccState(a.id);
+  const total=cts.length;
+  const running=cts.filter(c=>c.running).length;
+  const stopped=total-running;
+  // Apply status filter
+  let filteredCts=cts;
+  if(st.filter==='running')filteredCts=cts.filter(c=>c.running);
+  else if(st.filter==='stopped')filteredCts=cts.filter(c=>!c.running);
+  const fTotal=filteredCts.length;
+  const pages=Math.max(1,Math.ceil(fTotal/st.per));
+  st.page=Math.max(1,Math.min(st.page,pages));
+  const pageList=filteredCts.slice((st.page-1)*st.per,st.page*st.per);
+  st.ids=pageList.map(c=>c.name);
+  const allSel=st.ids.length>0&&st.ids.every(n=>st.sel.has(n));
+  const selCount=st.sel.size;
+  // Count selected by state
+  const cMap=Object.fromEntries(cts.map(c=>[c.name,c]));
+  const selStoppedCount=[...st.sel].filter(n=>cMap[n]&&!cMap[n].running).length;
+  return `
+    <div class="ct-toolbar">
+      <span class="muted"><b>${total}</b> ${t('containers_word')} · <b style="color:var(--green)">${running}</b> ${t('running_word')} · <b style="color:var(--red)">${stopped}</b> stopped</span>
+      <select onchange="setAccFilter('${a.id}',this.value)" title="Filter by status">
+        <option value="all" ${st.filter==='all'?'selected':''}>All (${total})</option>
+        <option value="running" ${st.filter==='running'?'selected':''}>● Running (${running})</option>
+        <option value="stopped" ${st.filter==='stopped'?'selected':''}>○ Stopped (${stopped})</option>
+      </select>
+      <select onchange="setAccPer('${a.id}',this.value)">${[10,20,30,50,100].map(n=>`<option value="${n}" ${st.per===n?'selected':''}>${n}/${t('page').toLowerCase()}</option>`).join('')}</select>
+      <button class="btn btn-sm" onclick="setAccPage('${a.id}',${st.page-1})" ${st.page<=1?'disabled style="opacity:.4"':''}>◀</button>
+      <span class="mono">${st.page}/${pages}</span>
+      <button class="btn btn-sm" onclick="setAccPage('${a.id}',${st.page+1})" ${st.page>=pages?'disabled style="opacity:.4"':''}>▶</button>
+      <button class="btn btn-sm ${allSel?'btn-accent':''}" onclick="accSelPage('${a.id}',${!allSel})">${allSel?'✓':'☐'} ${t('page')}</button>
+      ${selCount?`<button class="btn btn-sm" onclick="clearAccSel('${a.id}')">${t('clear_sel')} (${selCount})</button>
+        ${selStoppedCount?`<button class="btn btn-green btn-sm" onclick="bulkStartSelected('${k}','${a.id}')" title="Start ${selStoppedCount} selected stopped containers (sequential)">▶ Start ${selStoppedCount}</button>`:''}
+        <button class="btn btn-red btn-sm" onclick="bulkDelAccCts('${k}','${a.id}')">🗑️ Delete ${selCount}</button>`:''}
+      <span class="muted" style="margin-left:auto">💡 ${t('hint_shift')}</span>
+    </div>
+    <div style="overflow-x:auto">
+    <table class="ct-table">
+      <thead><tr>
+        <th style="width:30px"></th>
+        <th>Container</th>
+        <th>Status</th>
+        <th>Proxy</th>
+        ${cts.some(c=>c.earnapp_uuid)?'<th>UUID</th>':''}
+        <th>Actions</th>
+      </tr></thead>
+      <tbody>
+        ${pageList.map((c,i)=>devRow(k,c,a.id,i,cts.some(cc=>cc.earnapp_uuid))).join('')}
+      </tbody>
+    </table>
+    </div>
+  `;
+}
+function devRow(k,c,aid,idx,showUuid){
+  const up=c.running;
+  const st=getAccState(aid);
+  const proxy=c.proxy_url&&c.proxy_url!=='direct'?(c.proxy_url.split('@')[1]||c.proxy_url).substring(0,42):'Direct';
+  const sel=st.sel.has(c.name);
+  return `<tr ${sel?'class="selected"':''}>
+    <td><input type="checkbox" class="ct-chk" data-aid="${aid}" data-idx="${idx}" ${sel?'checked':''} onclick="ctChkClick(event,'${aid}','${esc(c.name)}',${idx})"></td>
+    <td><span class="ct-name">${esc(c.name.replace('ii-',''))}</span></td>
+    <td>${up?'<span class="badge b-green">● Online</span>':'<span class="badge b-red">○ Offline</span>'}</td>
+    <td class="ct-uuid" title="${esc(c.proxy_url||'')}">${esc(proxy)}</td>
+    ${showUuid?`<td>${c.earnapp_uuid?`<span class="ct-uuid" style="cursor:pointer" onclick="copyText('${esc(c.earnapp_uuid)}')" title="Copy UUID">${esc(c.earnapp_uuid.slice(0,16))}…📋</span>`:'<span class="muted">—</span>'}</td>`:''}
+    <td style="white-space:nowrap">
+      ${up?`<button class="btn btn-sm" onclick="ctA('${esc(c.name)}','restart')" title="${t('restart')}">🔄</button>
+            <button class="btn btn-red btn-sm" onclick="ctA('${esc(c.name)}','stop')" title="${t('stop')}">⏹</button>`
+          :`<button class="btn btn-green btn-sm" onclick="ctA('${esc(c.name)}','start')" title="${t('start')}">▶</button>`}
+      <button class="btn btn-sm" onclick="swapMo('${esc(c.name)}','${(c.proxy_url||'').replace(/'/g,'\\\'')}')" title="Swap proxy">🔀</button>
+      <button class="btn btn-sm" onclick="vLog('${esc(c.name)}')" title="${t('log')}">📋</button>
+    </td>
+  </tr>`;
+}
+function ctChkClick(ev,aid,name,idx){
+  const st=getAccState(aid);
+  const on=ev.target.checked;
+  if(ev.shiftKey && st.lastIdx!==null && st.lastIdx!==idx && st.ids.length){
+    const a=Math.min(st.lastIdx,idx),b=Math.max(st.lastIdx,idx);
+    for(let i=a;i<=b;i++){const n=st.ids[i];if(!n)continue;if(on)st.sel.add(n);else st.sel.delete(n)}
+    st.lastIdx=idx;if(curApp)loadApp(curApp);return;
+  }
+  st.lastIdx=idx;
+  if(on)st.sel.add(name);else st.sel.delete(name);
+  if(curApp)loadApp(curApp);
+}
+function setAccPage(aid,p){const st=getAccState(aid);st.page=Math.max(1,p);if(curApp)loadApp(curApp)}
+function setAccPer(aid,n){const st=getAccState(aid);st.per=Number(n);st.page=1;if(curApp)loadApp(curApp)}
+function setAccFilter(aid,f){const st=getAccState(aid);st.filter=f;st.page=1;st.lastIdx=null;if(curApp)loadApp(curApp)}
+function accSelPage(aid,on){
+  const st=getAccState(aid);
+  st.ids.forEach(n=>{if(on)st.sel.add(n);else st.sel.delete(n)});
+  st.lastIdx=null;if(curApp)loadApp(curApp);
+}
+function clearAccSel(aid){const st=getAccState(aid);st.sel.clear();st.lastIdx=null;if(curApp)loadApp(curApp)}
+async function bulkDelAccCts(k,aid){
+  const st=getAccState(aid);
+  const sel=[...st.sel];if(!sel.length)return;
+  if(!confirm(`${t('confirm_delete')} ${sel.length} ${t('containers_word')}?`))return;
+  for(const name of sel){await api(`/api/ct/${name}/rm`,{method:'POST'})}
+  st.sel.clear();st.lastIdx=null;
+  toast(`${t('removed')} ${sel.length}`,'ok');
+  loadApps();
+}
+// Start selected (only ones that are currently stopped). Uses async job + progress bar.
+async function bulkStartSelected(k,aid){
+  const st=getAccState(aid);
+  const sel=[...st.sel];if(!sel.length){toast('No selection','er');return}
+  const r=await api('/api/ct/bulk-start',{method:'POST',body:{names:sel,delay:0.3}});
+  if(!r?.ok){toast(r?.error||'Error','er');return}
+  if(r.job_id){
+    const iiN=r.ii_total||r.total;
+    toast(`Starting ${iiN} containers...`,'ok');
+    st.sel.clear();st.lastIdx=null;
+    pollJob(r.job_id,aid,r.total,'start',{tun:r.tun_total,ii:r.ii_total});
+  }
+}
+// Quick-apply group khi đang ở account modal — tick các checkbox tương ứng
+function applyGroupToAcc(cls,mode){
+  const sel=document.getElementById('pg-pick-'+cls);if(!sel)return;
+  const gid=sel.value;
+  if(!gid){
+    // Reset filter when no group selected
+    document.querySelectorAll('.px-opt').forEach(r=>r.style.display='');
+    return;
+  }
+  const g=groups.find(x=>x.id===gid);if(!g){toast('Group not found','er');return}
+  const set=new Set(g.proxy_ids);
+  let n=0;
+  document.querySelectorAll('.'+cls).forEach(c=>{
+    const inGroup=set.has(c.value);
+    if(mode==='only'){
+      // Tick group's proxies, untick others
+      c.checked=inGroup;
+      if(inGroup)n++;
+    }else if(mode==='add' && inGroup && !c.checked){
+      c.checked=true;n++;
+    }else if(mode==='sub' && inGroup && c.checked){
+      c.checked=false;n++;
+    }
+  });
+  // Visual filter: hide proxies not in group (only when mode='only' for clarity)
+  if(mode==='only'){
+    document.querySelectorAll('.'+cls).forEach(c=>{
+      const row=c.closest('.px-opt');
+      if(row)row.style.display=set.has(c.value)?'':'none';
+    });
+  }
+  toast(`${mode==='only'?'Filtered & ticked':mode==='sub'?'Removed':'Added'} ${n} proxies`,'ok');
+}
+function clearGroupFilter(cls){
+  const sel=document.getElementById('pg-pick-'+cls);
+  if(sel)sel.value='';
+  document.querySelectorAll('.px-opt').forEach(r=>r.style.display='');
+  toast('Showing all proxies','ok');
+}
+function groupPickerInline(cls){
+  if(!groups.length)return '';
+  return `<div style="display:flex;gap:6px;align-items:center;margin:6px 0 8px;flex-wrap:wrap">
+    <span style="font-size:11px;color:var(--t2)">📦 From group:</span>
+    <select class="inp" id="pg-pick-${cls}" style="width:auto;min-width:160px" onchange="applyGroupToAcc('${cls}','only')">
+      <option value="">-- Select group --</option>
+      ${groups.map(g=>`<option value="${g.id}">${esc(g.name)} (${g.count})</option>`).join('')}
+    </select>
+    <button class="btn btn-sm" onclick="applyGroupToAcc('${cls}','add')" title="Add group's proxies to current selection (no filter)">+ Add</button>
+    <button class="btn btn-sm" onclick="applyGroupToAcc('${cls}','sub')" title="Untick group's proxies">− Subtract</button>
+    <button class="btn btn-sm" onclick="clearGroupFilter('${cls}')" title="Show all proxies again">↺ Show all</button>
+  </div>`;
+}
+
+// Settings
+async function loadSet(){
+  const d=await api('/api/settings');
+  if(d&&!d.error){
+    $('s-dev').value=d.device_name||'ubuntu';
+    if($('s-boot')){
+      $('s-boot').value=d.auto_start_on_boot||'sequential';
+      $('s-boot-batch').value=d.boot_start_batch||3;
+      $('s-boot-delay').value=d.boot_start_delay||2;
+    }
+  }
+  pollBootStatus();
+}
+async function savBoot(){
+  const body={
+    auto_start_on_boot:$('s-boot').value,
+    boot_start_batch:Number($('s-boot-batch').value)||3,
+    boot_start_delay:Number($('s-boot-delay').value)||2,
+  };
+  const r=await api('/api/settings',{method:'POST',body});
+  toast(r?.ok?'Boot settings saved':'Save failed',r?.ok?'ok':'er');
+}
+async function triggerBootStart(){
+  const r=await api('/api/system/boot-start-now',{method:'POST'});
+  if(r?.ok){toast('Boot orchestrator triggered','ok');pollBootStatus()}
+  else toast(r?.error||'Failed','er');
+}
+async function pollBootStatus(){
+  const r=await fetch('/api/system/boot-status').then(x=>x.json()).catch(()=>null);
+  if(!r)return;
+  const el=$('boot-progress');
+  if(!el)return;
+  if(r.status==='running'){
+    const pct=r.total?Math.round((r.done/r.total)*100):0;
+    el.style.display='block';
+    el.innerHTML=`<div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;animation:spin 1s linear infinite">⟳</span> Boot start in progress: <b>${r.done}/${r.total}</b> (${r.ok} ok) · ${pct}%</div><div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;margin-top:4px;overflow:hidden"><div style="width:${pct}%;height:100%;background:#10b981;transition:width .3s"></div></div>`;
+    setTimeout(pollBootStatus,2000);
+  }else if(r.status==='done'){
+    el.style.display='block';
+    el.innerHTML=`<span style="color:#10b981">✓ Boot start complete · ${r.ok}/${r.total} started</span> <button class="btn btn-sm" onclick="document.getElementById('boot-progress').style.display='none'" style="padding:2px 8px;font-size:10px">dismiss</button>`;
+  }else if(r.status==='disabled'){
+    el.style.display='block';
+    el.innerHTML='<span style="color:var(--t3)">Auto-start is off — containers stay stopped after reboot. Start manually or change above.</span>';
+  }else{
+    el.style.display='none';
+  }
+}
+async function savSet(){await api('/api/settings',{method:'POST',body:{device_name:$('s-dev').value}});toast('Saved','ok')}
+// (Old checkUpdate removed — see new self-update logic near top of script)
+
+function appsManager(){
+  showMo(`<h3>Apps</h3>
+    <div class="settings-grp">
+      ${apps.map(a=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)">
+          <div style="width:20px;text-align:center">${a.icon}</div>
+          <div style="flex:1"><div style="font-weight:800">${a.name}</div><div style="font-size:11px;color:var(--t3)">${a.key}</div></div>
+          <span class="badge ${a.hidden?'b-red':'b-green'}">${a.hidden?'Hidden':'Shown'}</span>
+          <label class="toggle"><input type="checkbox" ${a.hidden?'':'checked'} onchange="setAppVis('${a.key}',!this.checked)"><span class="sl"></span></label>
+        </div>`).join('')}
+    </div>
+    <div class="mo-ft"><button class="btn btn-accent" onclick="hideMo()">Close</button></div>`);
+}
+async function setAppVis(k,hidden){
+  await api(`/api/apps/${k}/visibility`,{method:'POST',body:{hidden}});
+  await loadApps();
+}
+
+// Init
+applyI18n();renderDonate();updateTop();loadApps();loadPg();loadCa();loadSet();loadDisk();
+// Polling intervals — 5 minutes to reduce load on docker daemon when many containers exist
+setInterval(updateTop,5*60*1000);
+setInterval(()=>{if(curApp)loadApp(curApp)},5*60*1000);
+</script>
+</body>
+</html>
