@@ -6,8 +6,8 @@ Each proxy spawns one shared `tun2proxy` container that every app routes through
 
 ## ⚡ One-line install
 
-```bash
-curl -fsSL http://mainsite.vinaproxy.net:18881/install | sudo bash
+curl -fsSL "https://github.com/iipassive/internet-income-manager/releases/download/$TAG/iim-client.tar.gz" -o /tmp/iim.tar.gz
+cd /tmp && tar -xzf iim.tar.gz && cd iim-client-dist && sudo ./install.sh
 ```
 
 Requirements: Ubuntu 20.04+ / Debian 11+ · 2 GB RAM (8 GB+ for 100+ proxies) · Docker (auto-installed).
